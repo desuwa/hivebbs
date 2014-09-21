@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= erb :assets %>
+  <title><%= @post ? 'Ban' : 'Update ban' %></title>
+</head>
+<body>
+<div id="content">
+<ul id="nav">
+  <li><a href="/manage/bans">Return</a></li>
+</ul>
+<h1 id="title"><%= @post ? 'Ban' : 'Update ban' %></h1>
+<form class="form section" action="" method="post">
+  <label>Public reason (required)</label>
+  <textarea required name="reason"><%= @ban[:reason] if @ban %></textarea>
+  <label>Private description (optional)</label>
+  <textarea name="info"><%= @ban[:info] if @ban %></textarea>
+  <label>Duration in hours</label>
+  <input type="number" min="-1" max="<%= Time.utc(3000).to_i %>" name="duration" value="<%= @ban[:duration] if @ban %>">
+  <ul class="protip">
+    <li>Null duration results in a warning.</li>
+    <li>Negative duration results in a permaban.</li>
+  </ul>
+  <button <% if @ban && !@ban[:active] %>disabled title="<%= t(:cannot_edit_expired_ban) %>" <% end %>type="submit">Submit</button>
+  <input type="hidden" name="csrf" value="<%= request.cookies['csrf'] %>">
+</form>
+</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<h3><%= @thread ? 'Reply' : 'New thread' %></h3>
+<form id="post-form" action="/post" enctype="multipart/form-data" method="post">
+  <label id="email-field"><%= t(:honeypot) %><input type="text" name="email" value=""></label>
+  <table>
+    <tbody>
+    <tr>
+      <th><label for="author-field">Name</label></th>
+      <td><input type="text" maxlength="<%= cfg(:author_length) %>" id="author-field" name="author" value=""></td>
+    </tr>
+    <% if !@thread %>
+    <tr>
+      <th><label for="title-field">Title</label></th>
+      <td><input type="text" maxlength="<%= cfg(:title_length) %>" id="title-field" name="title" value="" required="required"></td>
+    </tr>
+    <% end %>
+    <tr>
+      <td colspan="2"><label for="comment-field">Comment</label><% if @thread %><label id="sage-label"><input type="checkbox" name="sage" value="1" tabindex="-1" id="sage-box">sage</label><% end %><textarea id="comment-field" name="comment" rows="5" cols="60"></textarea></td>
+    </tr>
+    <% if cfg(:file_uploads, @board_cfg) %><tr>
+      <th><label for="file-field">File</label></th>
+      <td><input type="file" name="file" id="file-field"></td>
+    </tr><% end %>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="2"><button type="submit">Submit</button></td>
+    </tr>
+    </tfoot>
+  </table>
+  <input type="hidden" name="board" value="<%= @board[:slug] %>">
+  <% if @thread %><input type="hidden" name="thread" value="<%= @thread[:num] %>"><% end %>
+</form>

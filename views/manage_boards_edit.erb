@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= erb :assets %>
+  <title><%= @board ? 'Edit' : 'Add' %> board</title>
+</head>
+<body>
+<div id="content">
+<ul id="nav">
+  <li><a href="/manage/boards">Return</a></li>
+</ul>
+<h1 id="title"><%= @board ? 'Edit' : 'Add' %> board</h1>
+<form class="form section" action="" method="post">
+  <label>Slug</label>
+  <input type="text" name="slug" required value="<%= @board[:slug] if @board %>">
+  <label>Title</label>
+  <input type="text" name="title" required value="<%= @board[:title] if @board %>">
+  <label>Config</label>
+  <textarea name="config"><%= EscapeUtils.escape_html(JSON.pretty_generate(JSON.parse(@board[:config]))) if @board && @board[:config] %></textarea>
+  <%= csrf_tag(request.cookies['csrf']) %>
+  <button type="submit">Submit</button>
+</form>
+<% if @board %>
+<div id="confirm-destroy">
+<h3>Delete this board</h3>
+<form action="/manage/boards/delete/<%= @board[:id] %>" method="post">
+  <%= csrf_tag(request.cookies['csrf']) %>
+  <label>Type <%= t(:confirm_keyword) %> to confirm</label>
+  <input type="text" name="confirm_keyword" required><button type="submit">Delete</button>
+</form>
+</div>
+<% end %>
+</div>
+</body>
+</html>

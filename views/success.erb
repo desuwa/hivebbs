@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <% if @redirect %><meta http-equiv="Refresh" content="1; url=<%= @redirect %>" /><% end %>
+  <%= erb :assets %>
+  <title>Success</title>
+</head>
+<body>
+<div id="content">
+  <h2 class="success"><%= @msg %></h2>
+</div>
+</body>
+</html>

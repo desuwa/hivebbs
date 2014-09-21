@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= erb :assets %>
+  <% if request.cookies['csrf'] %>
+  <script type="text/javascript" src="/javascripts/manage.js"></script>
+  <% end %>
+  <title>/<%= @board[:slug] %>/ - <%= @thread[:title] %></title>
+</head>
+<body>
+<div id="content">
+<ul id="nav">
+  <li><a href="/<%= @board[:slug] %>/" title="Return to /<%= @board[:slug] %>/">Return</a></li>
+  <li class="tce">—</li>
+  <li><a href="#bottom">Bottom</a></li>
+</ul>
+<h1 id="title"><%= @thread[:title] %></h1>
+<div class="section" id="posts">
+<%
+forced_anon = cfg(:forced_anon, @board_cfg)
+anon = cfg(:anon, @board_cfg)
+time_format = t(:time_format)
+@posts.each do |post| 
+  meta = post[:meta] ? JSON.parse(post[:meta], symbolize_names: true) : {}
+%>
+<div id="post-<%= post[:num] %>" class="post">
+  <div class="post-head">
+    <a class="post-num" href="#<%= post[:num] %>" data-cmd="q"><%= post[:num] %></a><span class="post-author"><%= forced_anon ? anon : (post[:author] || anon) %></span><% if post[:tripcode] && (!forced_anon || meta[:capcode]) %><span class="post-tripcode">!<%= post[:tripcode] %></span><% end %><span class="post-date" data-time="<%= post[:created_on] %>"><%= Time.at(post[:created_on]).utc.strftime(time_format) %></span>
+  </div>
+  <% if post[:comment] %>
+  <div class="post-comment">
+    <%= post[:comment] %>
+  </div>
+  <% end %>
+  <% if post[:file_hash];
+  file_meta = JSON.parse(post[:meta], symbolize_names: true)[:file];
+  file_href = "/files/#{@board[:id]}/#{post[:thread_id]}/#{post[:file_hash]}.#{file_meta[:ext]}" %>
+  <div class="post-file">
+    <div class="post-file-meta"><a href="<%= file_href %>"><%= file_meta[:ext] %> <%= file_meta[:w] %>x<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %></a></div>
+    <a class="post-file-thumb" href="<%= file_href %>"><img src="/files/<%= "#{@board[:id]}/#{post[:thread_id]}/t_#{post[:file_hash]}" %>.jpg" data-cmd="fexp" width="<%= file_meta[:th_w] %>" height="<%= file_meta[:th_h] %>" alt=""></a>
+  </div>
+  <% end %>
+</div>
+<% end %>
+</div><span id="bottom"></span>
+<% if @thread[:post_count] >= cfg(:post_limit) %>
+<h3><%= t(:thread_full) %></h3>
+<% else @_out_buf << (erb :form) end %>
+</div>
+<%= erb :footer %>
+</body>
+</html>
