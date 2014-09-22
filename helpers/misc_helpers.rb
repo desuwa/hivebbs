@@ -76,9 +76,9 @@ class BBS < Sinatra::Base
   
   def get_board_config(board)
     if board[:config]
-      @board_cfg = JSON.parse(board[:config], symbolize_names: true)
+      JSON.parse(board[:config], symbolize_names: true)
     else
-      @board_cfg = nil
+      nil
     end
   end
   
