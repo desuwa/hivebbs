@@ -114,10 +114,10 @@ This will create a `puma-hive.rb` file
 
 You might want to adjust the `threads` and `workers` parameters. Check the Puma [documentation](https://github.com/puma/puma) for that.
 
-`rake puma:start` starts Puma.
-`rake puma:reload` does a [phased-restart](https://github.com/puma/puma#normal-vs-hot-vs-phased-restart).
-`rake puma:restart` restarts Puma.
-`rake puma:stop` stops Puma.
+`rake puma:start` starts Puma.  
+`rake puma:reload` does a [phased-restart](https://github.com/puma/puma#normal-vs-hot-vs-phased-restart).  
+`rake puma:restart` restarts Puma.  
+`rake puma:stop` stops Puma.  
 
 **Configure what's in front of Puma**
 
@@ -160,6 +160,8 @@ You really should use HTTPS, though.
 `gem install rack-test minitest`
 
 Get the [sample data](https://github.com/desuwa/hivebbs_spec_data) if you want to test ImageMagick and FFmpeg. Put it inside the `spec` directory so to have the sample files inside `spec/data`.
+
+Create `config/db_test.rb` and a new database.
 
 `rake -T` to see all test tasks.
 
