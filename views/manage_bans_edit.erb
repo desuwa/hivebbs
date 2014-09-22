@@ -11,13 +11,17 @@
   <li><a href="/manage/bans">Return</a></li>
 </ul>
 <h1 id="title"><%= @post ? 'Ban' : 'Update ban' %></h1>
+<table class="section">
+  <tr><th>IP</th><td><%= @post[:ip] %></td></tr>
+  <tr><th>Reverse</th><td><%= resolve_name @post[:ip] %></td></tr>
+</table>
 <form class="form section" action="" method="post">
   <label>Public reason (required)</label>
   <textarea required name="reason"><%= @ban[:reason] if @ban %></textarea>
   <label>Private description (optional)</label>
   <textarea name="info"><%= @ban[:info] if @ban %></textarea>
   <label>Duration in hours</label>
-  <input type="number" min="-1" max="<%= Time.utc(3000).to_i %>" name="duration" value="<%= @ban[:duration] if @ban %>">
+  <input type="number" min="-1" max="<%= MAX_BAN %>" name="duration" value="<%= @ban[:duration] if @ban %>">
   <ul class="protip">
     <li>Null duration results in a warning.</li>
     <li>Negative duration results in a permaban.</li>

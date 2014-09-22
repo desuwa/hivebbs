@@ -11,6 +11,12 @@ class BBS < Sinatra::Base
   
   USER_GROUPS = USER_LEVELS.invert
   
+  def resolve_name(ip)
+    Resolv.getname(ip)
+  rescue Resolv::ResolvError, Resolv::ResolvTimeout
+    nil
+  end
+  
   def csrf_tag(value, name = 'csrf')
     "<input type=\"hidden\" name=\"#{name}\" value=\"#{value}\">"
   end
