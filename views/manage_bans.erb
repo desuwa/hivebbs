@@ -19,6 +19,7 @@
 <table id="ban-list" class="table">
   <thead>
     <td>Active</td>
+    <td>IP or Subnet</td>
     <td>Reason</td>
     <td>Description</td>
     <td>Created by</td>
@@ -32,6 +33,7 @@
   <% @bans.each do |ban| %>
   <tr>
     <td><% if ban[:active] %>&check;<% end %></td>
+    <td><%= IPAddr.new_ntoh(ban[:ip]) %></td>
     <td class="ban-list-reason"><%= ban[:reason] %></td>
     <td class="ban-list-reason"><%= ban[:info] %></td>
     <td><%= ban[:username] %></td>
