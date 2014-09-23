@@ -37,6 +37,14 @@ class BBS < Sinatra::Base
     failure t(:bad_request), 400
   end
   
+  def asset(src)
+    if a = ASSETS[src]
+      return a
+    end
+    v = OpenSSL::Digest::MD5.file("#{settings.public_dir}#{src}").hexdigest
+    ASSETS[src] = "#{src}?#{v[0, 8]}".freeze # query strings, for now...
+  end
+  
   def run_cmd(cmd, timeout = nil)
     rpipe, wpipe = IO.pipe
     

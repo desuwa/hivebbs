@@ -57,6 +57,8 @@ class BBS < Sinatra::Base
   
   set :protection, false
   
+  ASSETS = {}
+  
   get '/' do
     @boards = DB[:boards].all
     erb :index
