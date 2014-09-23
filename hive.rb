@@ -288,7 +288,7 @@ class BBS < Sinatra::Base
         if file_ext == 'webm'
           process_file_ffmpeg(file[:tempfile], tmp_thumb_path)
         else
-          process_file_minimagick(file[:tempfile], tmp_thumb_path)
+          process_file_imagemagick(file[:tempfile], tmp_thumb_path)
         end
     elsif !comment
       failure t(:comment_empty)

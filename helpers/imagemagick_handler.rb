@@ -2,7 +2,7 @@ module Hive
 
 class BBS < Sinatra::Base
   
-  def process_file_minimagick(file, dest)
+  def process_file_imagemagick(file, dest)
     limits = cfg(:file_limits)[:image]
     
     if file.size > limits[:file_size]
