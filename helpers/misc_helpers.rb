@@ -41,7 +41,19 @@ class BBS < Sinatra::Base
     if a = ASSETS[src]
       return a
     end
-    v = OpenSSL::Digest::MD5.file("#{settings.public_dir}#{src}").hexdigest
+    
+    min_src = src.sub(/\.([a-z]+)$/, '.min.\1'.freeze)
+    min_path = "#{settings.public_dir}#{min_src}".freeze
+    
+    if settings.production? && File.exist?(min_path)
+      path = min_path
+      src = min_src
+    else
+      path = "#{settings.public_dir}#{src}".freeze
+    end
+    
+    v = OpenSSL::Digest::MD5.file(path).hexdigest
+    
     ASSETS[src] = "#{src}?#{v[0, 8]}".freeze # query strings, for now...
   end
   
