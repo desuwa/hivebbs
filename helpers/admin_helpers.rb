@@ -197,7 +197,7 @@ class BBS < Sinatra::Base
       ids << post[:id]
       
       if post[:file_hash]
-        meta = JSON.parse(post[:meta])['file_meta']
+        meta = JSON.parse(post[:meta])['file']
         paths << "#{root}/#{post[:file_hash]}.#{meta['ext']}"
         paths << "#{root}/t_#{post[:file_hash]}.jpg"
       end
