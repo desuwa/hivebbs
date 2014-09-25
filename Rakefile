@@ -28,7 +28,15 @@ namespace :test do
   end 
 end
 
+task :build => 'build:all'
+
 namespace :build do
+  desc 'Minify and precompress everything'
+  task :all do
+    Rake::Task['build:js'].invoke
+    Rake::Task['build:css'].invoke
+  end
+  
   desc 'Minify and precompress JavaScript'
   task :js do
     require 'zlib'
@@ -45,6 +53,27 @@ namespace :build do
     
     File.open("#{root}/hive.min.js", 'w') { |f| f.write js }
     File.open("#{root}/hive.min.js.map", 'w') { |f| f.write sm }
+  end
+  
+  desc 'Minify and precompress CSS'
+  task :css do
+    require 'zlib'
+    require 'sass'
+    
+    root = 'public/stylesheets'
+    
+    sass = Sass::Engine.new(
+      File.read("#{root}/hive.css"),
+      style: :compressed, cache: false, syntax: :scss
+    )
+    
+    css = sass.render
+    
+    Zlib::GzipWriter.open("#{root}/hive.min.css.gz") do |gz|
+      gz.write(css)
+    end
+    
+    File.open("#{root}/hive.min.css", 'w') { |f| f.write css }
   end
 end
 
