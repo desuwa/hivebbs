@@ -42,6 +42,11 @@ class HiveSpec < MiniTest::Spec
     end
   end
   
+  def sid_as(group)
+    set_cookie "sid=#{group}"
+    set_cookie "csrf=ok"
+  end
+  
   describe '/manage/auth' do
     it 'works' do
       auth('admin')
@@ -72,8 +77,7 @@ class HiveSpec < MiniTest::Spec
       REQUIRED_LEVELS.each do |group, methods|
         above = sorted_levels[sorted_levels.index(group) + 1]
         
-        set_cookie "sid=#{above}"
-        set_cookie "csrf=ok"
+        sid_as(above)
         
         methods.each do |method, paths|
           paths.each do |path|
@@ -113,7 +117,7 @@ class HiveSpec < MiniTest::Spec
       REQUIRED_LEVELS.each_key do |level|
         HiveSpec.reset_board_dir
         
-        set_cookie "sid=#{level}"
+        sid_as(level)
         
         DB.transaction(:rollback => :always) do
           make_post({
@@ -127,4 +131,64 @@ class HiveSpec < MiniTest::Spec
     end
   end
   
+  describe '/manage/posts/delete' do
+    def prepare_thread
+      make_post({ 'title' => 'test', 'comment' => 'test' })
+      
+      tid, tnum = DB[:threads].select(:id, :num).reverse_order(:id).first.values
+      
+      2.times do
+        make_post({ 'thread' => tnum, 'comment' => 'test' })
+      end
+      
+      dir = "#{app.settings.files_dir}/1/#{tid}"
+      meta = { file: { ext: 'jpg' } }.to_json
+      
+      3.times do |i|
+        i += 1
+        DB[:posts].where(:thread_id => tid, :num => i).update({
+          :file_hash => "dead#{i}",
+          :meta => meta
+        })
+        
+        FileUtils.touch("#{dir}/dead#{i}.jpg")
+        FileUtils.touch("#{dir}/t_dead#{i}.jpg")
+      end
+      
+      [tid, tnum]
+    end
+    
+    it 'deletes posts' do
+      DB.transaction(:rollback => :always) do
+        tid, tnum = prepare_thread
+        
+        sid_as('admin')
+        
+        dir = "#{app.settings.files_dir}/1/#{tid}"
+        
+        # Delete last reply
+        post '/manage/posts/delete', {
+          'board' => 'test', 'thread' => tnum, 'post' => '3', 'csrf' => 'ok'
+        }
+        
+        assert last_response.body.include?(t(:done)), last_response.body
+        
+        File.exist?("#{dir}/dead3.jpg").must_equal false, 'file 3'
+        File.exist?("#{dir}/t_dead3.jpg").must_equal false, 'thumb 3'
+        
+        # Delete whole thread
+        post '/manage/posts/delete', {
+          'board' => 'test', 'thread' => tnum, 'post' => '1', 'csrf' => 'ok'
+        }
+        
+        assert last_response.body.include?(t(:done)), last_response.body
+        
+        2.times do |i|
+          i += 1
+          File.exist?("#{dir}/dead#{i}.jpg").must_equal false, "file #{i}"
+          File.exist?("#{dir}/t_dead#{i}.jpg").must_equal false, "thumb #{i}"
+        end
+      end
+    end
+  end
 end
