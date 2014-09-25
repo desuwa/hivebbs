@@ -7,7 +7,6 @@ include Rake
 task :test => 'test:all'
 
 namespace :test do
-  
   TestTask.new(:all) do |t|
     t.description = 'Run all tests'
     t.test_files = FileList['spec/*_spec.rb']
@@ -27,11 +26,29 @@ namespace :test do
     t.description = 'Skip ImageMagick handler tests'
     t.test_files = Dir['spec/*_spec.rb'].reject { |f| f.include?('magick') }
   end 
-   
+end
+
+namespace :build do
+  desc 'Minify and precompress JavaScript'
+  task :js do
+    require 'zlib'
+    require 'uglifier'
+    
+    root = 'public/javascripts'
+    
+    u = Uglifier.new(screw_ie8: true)
+    js, sm = u.compile_with_map(File.read("#{root}/hive.js"))
+    
+    Zlib::GzipWriter.open("#{root}/hive.min.js.gz") do |gz|
+      gz.write(js)
+    end
+    
+    File.open("#{root}/hive.min.js", 'w') { |f| f.write js }
+    File.open("#{root}/hive.min.js.map", 'w') { |f| f.write sm }
+  end
 end
 
 namespace :db do
-  
   cfg = 'config/db.rb'
   
   desc 'Create admin account using the provided username'
@@ -62,11 +79,9 @@ namespace :db do
     
     puts 'Done migrating'
   end
-  
 end
 
 namespace :puma do
-  
   cfg = 'puma-hive.rb'
   
   desc 'Create Puma config file'
