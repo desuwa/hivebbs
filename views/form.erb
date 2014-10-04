@@ -14,7 +14,7 @@
     </tr>
     <% end %>
     <tr>
-      <td colspan="2"><label for="comment-field">Comment</label><% if @thread %><label id="sage-label"><input type="checkbox" name="sage" value="1" tabindex="-1" id="sage-box">sage</label><% end %><textarea id="comment-field" name="comment" rows="5" cols="60"></textarea></td>
+      <td colspan="2"><label for="comment-field">Comment</label><span id="comment-preview-btn" class="link-span" data-cmd="markup">Preview</span></small><% if @thread %><label id="sage-label"><input type="checkbox" name="sage" value="1" tabindex="-1" id="sage-box">sage</label><% end %><textarea id="comment-field" name="comment" rows="5" cols="60"></textarea></td>
     </tr>
     <% if cfg(:file_uploads, @board_cfg) %><tr>
       <th><label for="file-field">File</label></th>

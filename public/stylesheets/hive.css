@@ -16,34 +16,39 @@ body {
   color: #232c33;
 }
 
-pre, code {
+pre {
   font: 12px
     'DejaVu Sans Mono',
     'Consolas',
     'Andale Mono',
     'Lucida Console',
     monospace;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #eee;
+  background-color: #fff;
 }
 
-a {
+a,
+.link-span {
   cursor: pointer;
   color: #007FFF;
   text-decoration: none;
 }
 
-a:hover {
+a:hover,
+.link-span:hover {
   color: #C41E3A;
   text-decoration: underline;
 }
 
-a:focus {
+a:focus,
+.link-span:focus {
   color: #C41E3A;
   outline: none;
 }
 
-q:before { content: '' }
-q:after { content: '' }
-q { color: #708090 }
+.q { color: #708090 }
 
 h2, h3, h4, h5, h6 {
   font-weight: bold;
@@ -59,9 +64,18 @@ h1 {
 h2 { font-size: 25px; }
 h3 { font-size: 18px; }
 
-form, p, ul, ol, pre, table { margin-bottom: 1em; }
+form, p, ul, ol, table { margin-bottom: 1em; }
 
 thead { font-weight: bold; }
+
+.disabled { opacity: 0.5; }
+.hidden { display: none !important; }
+
+.aa {
+  line-height: 17px;
+  white-space: pre;
+  font-family: 'IPAMonaPGothic', 'Mona', 'MS PGothic';
+}
 
 .table td {
   padding: 2px 5px;
@@ -110,12 +124,23 @@ label {
   margin-top: 40px;
 }
 
+.s {
+  color: transparent;
+  text-decoration: none;
+  background-color: #708090;
+}
+
+.s:hover {
+  background-color: inherit;
+  color: inherit;
+}
+
+.s a { visibility: hidden; }
+.s:hover a { visibility: visible; }
+
 #app-title {
   margin-top: 20px;
 }
-
-.disabled { opacity: 0.5; }
-.hidden { display: none; }
 
 .post {
   margin-bottom: 30px;
@@ -252,6 +277,16 @@ footer {
   width: 100%;
   height: 120px;
   min-height: 120px;
+}
+
+#comment-preview {
+  overflow: auto;
+  margin-top: 5px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+#comment-preview-btn {
+  font-size: 12px;
 }
 
 #file-field {

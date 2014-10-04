@@ -262,22 +262,19 @@ var QuotePreviews = {
   }
 };
 
-var FileViewer = {
-  init: function() {
-    
-  },
-};
-
 var Hive = {
   clickCommands: null,
   
   init: function() {
-    //$.on(document, 'DOMContentLoaded', Hive.run);
+    $.on(document, 'DOMContentLoaded', Hive.run);
+    
+    Hive.xhr = {};
     
     Hive.clickCommands = {
       'q': Hive.onPostNumClick,
       'fexp': Hive.onFileClick,
-      'fcon': Hive.closeGallery
+      'fcon': Hive.closeGallery,
+      'markup': Hive.onMarkupClick
     };
     
     $.on(document, 'click', Hive.onClick);
@@ -286,7 +283,9 @@ var Hive = {
   },
   
   run: function() {
-    //$.off(document, 'DOMContentLoaded', Hive.run);
+    $.off(document, 'DOMContentLoaded', Hive.run);
+    
+    window.prettyPrint && window.prettyPrint();
   },
   
   onClick: function(e) {
@@ -295,6 +294,13 @@ var Hive = {
     if (cmd && e.which === 1 && (cb = Hive.clickCommands[cmd])) {
       e.preventDefault();
       cb(e.target);
+    }
+  },
+  
+  abortXhr: function(id) {
+    if (Hive.xhr[id]) {
+      Hive.xhr[id].abort();
+      delete Hive.xhr[id];
     }
   },
   
@@ -340,6 +346,78 @@ var Hive = {
       document.body.removeChild(el);
       document.body.classList.remove('has-backdrop');
     }
+  },
+  
+  onMarkupClick: function(t) {
+    if (t.hasAttribute('data-active')) {
+      Hive.hideMarkupPreview(t);
+    }
+    else {
+      Hive.showMarkupPreview(t);
+    }
+  },
+  
+  showMarkupPreview: function(t) {
+    var el, com, data;
+    
+    Hive.abortXhr('markup');
+    
+    if (!(com = $.id('comment-field'))) {
+      return;
+    }
+    
+    t.setAttribute('data-active', '1');
+    t.textContent = 'Loading…';
+    
+    data = new FormData();
+    data.append('comment', com.value);
+    
+    Hive.xhr.markup = $.xhr('POST', '/markup', {
+      onload: Hive.onMarkupLoaded
+    }, data);
+  },
+  
+  onMarkupLoaded: function() {
+    var resp, el, com;
+    
+    Hive.xhr.markup = null;
+    
+    resp = JSON.parse(this.responseText);
+    
+    if (!(com = $.id('comment-field'))) {
+      return;
+    }
+    
+    if ((el = $.id('comment-preview'))) {
+      el.parentNode.removeChild(el);
+    }
+    
+    el = $.el('div');
+    el.id = 'comment-preview';
+    el.style.width = (com.offsetWidth - 2) + 'px';
+    el.style.height = com.offsetHeight + 'px';
+    
+    el.innerHTML = resp.data;
+    
+    com.parentNode.appendChild(el);
+    com.classList.add('hidden');
+    
+    $.id('comment-preview-btn').textContent = 'Write';
+  },
+  
+  hideMarkupPreview: function(t) {
+    var el, com;
+    
+    if (el = $.id('comment-preview')) {
+      el.parentNode.removeChild(el);
+    }
+    
+    if (com = $.id('comment-field')) {
+      com.classList.remove('hidden');
+    }
+    
+    t.removeAttribute('data-active');
+    t.textContent = 'Preview';
   },
   
   onPostNumClick: function(t) {

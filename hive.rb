@@ -4,6 +4,7 @@ require 'bcrypt'
 require 'erubis'
 require 'escape_utils'
 require 'fileutils'
+require 'hive_markup'
 require 'ipaddr'
 require 'json'
 require 'logger'
@@ -93,6 +94,20 @@ class BBS < Sinatra::Base
     @board_cfg = get_board_config(@board)
     
     erb :read
+  end
+  
+  post '/markup' do
+    content_type :json
+    
+    comment = params['comment'].to_s
+    
+    data = if comment.empty?
+      comment
+    else
+      Markup.render(comment)
+    end
+    
+    { status: 'success', data: data }.to_json
   end
   
   post '/post' do
@@ -192,31 +207,23 @@ class BBS < Sinatra::Base
     #
     comment = params['comment'].to_s
     
+    if /[^\u0000-\uffff]/u =~ comment
+      failure t(:invalid_chars)
+    end
+    
+    if comment.lines.count > cfg(:comment_lines)
+      failure t(:comment_too_long) 
+    end
+    
+    if comment.length > cfg(:comment_length)
+      failure t(:comment_too_long)
+    end
+    
+    comment = Markup.render(comment)
+    #comment.gsub!(/[^[:print:]]/u, '')
+    
     if comment.empty? || !(/[[:graph:]]/u =~ comment)
       comment = nil
-    else
-      if /[^\u0000-\uffff]/u =~ comment
-        failure t(:invalid_chars)
-      end
-      
-      comment.strip!
-      
-      if comment.lines.count > cfg(:comment_lines)
-        failure t(:comment_too_long) 
-      end
-      
-      if comment.length > cfg(:comment_length)
-        failure t(:comment_too_long)
-      end
-      
-      comment = EscapeUtils.escape_html(comment)
-      comment.gsub!(/&gt;&gt;([0-9]+)/, '<a class="ql" href="#\1">&gt;&gt;\1</a>')
-      comment.gsub!(/^&gt;(.*?)$/, '<q>&gt;\1</q>')
-      comment.gsub!(/(?:\r\n|\n){2,}/, '</p><p>')
-      comment.gsub!(/\r\n|\n/, '<br>')
-      comment.gsub!(/[^[:print:]]/u, '')
-      
-      comment = '<p>' << comment << '</p>'
     end
     
     #
