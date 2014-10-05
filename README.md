@@ -18,7 +18,7 @@ Download and extract a release tarball or clone the git repository:
 
 #### Install core dependencies
 
-`gem install rake bcrypt erubis escape_utils sequel sinatra`
+`gem install rake bcrypt erubis escape_utils sequel sinatra hive_markup`
 
 #### Pick a database adapter
 
