@@ -24,7 +24,7 @@ time_format = t(:time_format)
 @posts.each do |post| 
   meta = post[:meta] ? JSON.parse(post[:meta], symbolize_names: true) : {}
 %>
-<div id="post-<%= post[:num] %>" class="post">
+<div id="<%= post[:num] %>" class="post">
   <div class="post-head">
     <a class="post-num" href="#<%= post[:num] %>" data-cmd="q"><%= post[:num] %></a><span class="post-author"><%= forced_anon ? anon : (post[:author] || anon) %></span><% if post[:tripcode] && (!forced_anon || meta[:capcode]) %><span class="post-tripcode">!<%= post[:tripcode] %></span><% end %><span class="post-date" data-time="<%= post[:created_on] %>"><%= Time.at(post[:created_on]).utc.strftime(time_format) %></span>
   </div>

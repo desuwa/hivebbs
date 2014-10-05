@@ -198,7 +198,7 @@ var QuotePreviews = {
     var postId, postEl, el, cnt, aabb, s, left;
     
     postId = t.href.split('#').pop();
-    postEl = $.id('post-' + postId);
+    postEl = $.id(postId);
     
     QuotePreviews.detach(t);
     
