@@ -1,6 +1,6 @@
 function onPostDeleted() {
   // TODO: confirmation page should return a JSON with the post id.
-  var el = $.id('post-' + this.hivePostId);
+  var el = $.id(this.hivePostId);
   el && el.classList.add('disabled');
 }
 
