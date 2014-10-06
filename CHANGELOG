@@ -1,0 +1,15 @@
+0.1.0 - 2014-10-06
+  
+  * Added markdown-like comment formatting. This depends on the hive_markup gem.
+  * Fixed quotelinks not targeting posts when clicked.
+  * Added partial support for assets versioning:
+    - minified versions of hive.js and hive.css will be used in production.
+    - links to hive.js and hive.css will include their md5 as query string.
+  * Added rake tasks to minify hive.js and hive.css:
+    - rake build:js depends on the uglifier gem
+      and will minify, precompress and generate a source map for hive.js.
+    - rake build:css depends on the sass gem and will minify hive.css
+
+0.0.1 - 2014-09-21
+  
+  * First public release.
