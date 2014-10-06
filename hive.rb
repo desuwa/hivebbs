@@ -371,6 +371,7 @@ class BBS < Sinatra::Base
         
         if file
           post[:file_hash] = file_hash
+          file_meta[:spoiler] = true if params['spoiler']
           meta[:file] = file_meta
         end
         

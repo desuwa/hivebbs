@@ -38,7 +38,7 @@ time_format = t(:time_format)
   file_href = "/files/#{@board[:id]}/#{post[:thread_id]}/#{post[:file_hash]}.#{file_meta[:ext]}" %>
   <div class="post-file">
     <div class="post-file-meta"><a href="<%= file_href %>"><%= file_meta[:ext] %> <%= file_meta[:w] %>x<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %></a></div>
-    <a class="post-file-thumb" href="<%= file_href %>"><img src="/files/<%= "#{@board[:id]}/#{post[:thread_id]}/t_#{post[:file_hash]}" %>.jpg" data-cmd="fexp" width="<%= file_meta[:th_w] %>" height="<%= file_meta[:th_h] %>" alt=""></a>
+    <a class="post-file-thumb<% if file_meta[:spoiler] %> file-spoiler<% end %>" href="<%= file_href %>"><img src="/files/<%= "#{@board[:id]}/#{post[:thread_id]}/t_#{post[:file_hash]}" %>.jpg" data-cmd="fexp" width="<%= file_meta[:th_w] %>" height="<%= file_meta[:th_h] %>" alt=""></a>
   </div>
   <% end %>
 </div>

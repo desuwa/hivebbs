@@ -212,6 +212,24 @@ label {
   color: #708090;
 }
 
+.file-spoiler {
+  background-color: #708090;
+  transition: background-color .5s .25s;
+}
+
+.file-spoiler:hover {
+  background-color: transparent;
+}
+
+.file-spoiler img {
+  opacity: 0;
+  transition: opacity .5s .25s;
+}
+
+.file-spoiler:hover img {
+  opacity: 1;
+}
+
 .manage-ctrl a {
   margin-left: 5px;
 }
@@ -291,9 +309,12 @@ footer {
 
 #file-field {
   font-size: 14px;
+  max-width: 250px;
 }
 
-#sage-label {
+#sage-label,
+#spoiler-label {
+  font-size: 14px;
   float: right;
 }
 
@@ -346,8 +367,7 @@ footer {
   min-width: 100%;
 }
 
-.form input[type=checkbox] {
-  min-width: 0;
+input[type="checkbox"] {
   margin-bottom: 3px;
 }
 

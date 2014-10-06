@@ -18,7 +18,7 @@
     </tr>
     <% if cfg(:file_uploads, @board_cfg) %><tr>
       <th><label for="file-field">File</label></th>
-      <td><input type="file" name="file" id="file-field"></td>
+      <td><input type="file" name="file" id="file-field"><label id="spoiler-label"><input type="checkbox" name="spoiler" value="1" tabindex="-1" id="spoiler-box">spoiler</label></td>
     </tr><% end %>
     </tbody>
     <tfoot>
