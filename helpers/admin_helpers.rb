@@ -208,6 +208,27 @@ class BBS < Sinatra::Base
     FileUtils.rm_f(paths)
   end
   
+  def delete_post_files(thread, posts)
+    ids = []
+    paths = []
+    
+    root = "#{settings.files_dir}/#{thread[:board_id]}/#{thread[:id]}"
+    
+    posts.each do |post|
+      ids << post[:id]
+      
+      if post[:file_hash]
+        meta = JSON.parse(post[:meta])['file']
+        paths << "#{root}/#{post[:file_hash]}.#{meta['ext']}"
+        paths << "#{root}/t_#{post[:file_hash]}.jpg"
+      end
+    end
+    
+    DB[:posts].where(:id => ids).update(:file_hash => nil)
+    
+    FileUtils.rm_f(paths)
+  end
+  
   def user_has_level?(user, level)
     USER_LEVELS[level] <= user[:level]
   end

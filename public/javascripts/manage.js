@@ -4,7 +4,7 @@ function onPostDeleted() {
   el && el.classList.add('disabled');
 }
 
-function deletePost(slug, thread, post) {
+function deletePost(slug, thread, post, file_only) {
   var form
   
   form = new FormData();
@@ -12,6 +12,10 @@ function deletePost(slug, thread, post) {
   form.append('thread', thread);
   form.append('post', post);
   form.append('csrf', $.getCookie('csrf'));
+  
+  if (file_only) {
+    form.append('file_only', '1');
+  }
   
   $.xhr('POST', '/manage/posts/delete',
     {
@@ -24,11 +28,17 @@ function deletePost(slug, thread, post) {
 function onManagerClick(e) {
   var t, path, post;
   
-  if (e.target.getAttribute('data-cmd') === 'delete-post' && confirm('Sure?')) {
+  t = e.target;
+  
+  if (t === document) {
+    return;
+  }
+  
+  if (t.getAttribute('data-cmd') === 'delete-post' && confirm('Sure?')) {
     e.preventDefault();
     path = location.pathname.split('/');
-    post = e.target.parentNode.parentNode.parentNode.id.split('-').pop();
-    deletePost(path[1], path[3], post);
+    post = t.parentNode.parentNode.parentNode.id.split('-').pop();
+    deletePost(path[1], path[3], post, t.hasAttribute('data-delfile'));
   }
 }
 
@@ -50,6 +60,12 @@ function initManagerControls() {
     ctrl = document.createElement('a');
     ctrl.setAttribute('data-cmd', 'delete-post');
     ctrl.textContent = 'del';
+    cnt.appendChild(ctrl);
+    
+    ctrl = document.createElement('a');
+    ctrl.setAttribute('data-cmd', 'delete-post');
+    ctrl.setAttribute('data-delfile', '1');
+    ctrl.textContent = 'delfile';
     cnt.appendChild(ctrl);
     
     post = el.parentNode.id.split('-').pop();
