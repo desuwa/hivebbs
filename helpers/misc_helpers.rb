@@ -57,6 +57,24 @@ class BBS < Sinatra::Base
     ASSETS[src] = "#{src}?#{v[0, 8]}".freeze # query strings, for now...
   end
   
+  def decode_tegaki_upload(data)
+    ext = data.scan(/^data:image\/([a-z0-9]+);base64,/).flatten.join
+    
+    start = data.index(','.freeze)
+    
+    data = Base64.decode64(data[start, (data.size - start)])
+    
+    tmp = Tempfile.new('hive'.freeze)
+    tmp.binmode
+    tmp.write data
+    tmp.close
+    
+    {
+      tempfile: tmp,
+      filename: "raw.#{ext}".freeze
+    }
+  end
+  
   def run_cmd(cmd, timeout = nil)
     rpipe, wpipe = IO.pipe
     

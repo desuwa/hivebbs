@@ -14,11 +14,11 @@
     </tr>
     <% end %>
     <tr>
-      <td colspan="2"><label for="comment-field">Comment</label><span id="comment-preview-btn" class="link-span" data-cmd="markup">Preview</span></small><% if @thread %><label id="sage-label"><input type="checkbox" name="sage" value="1" tabindex="-1" id="sage-box">sage</label><% end %><textarea id="comment-field" name="comment" rows="5" cols="60"></textarea></td>
+      <td colspan="2"><label for="comment-field">Comment</label><span id="comment-preview-btn" class="link-span" data-cmd="markup">Preview</span><a href="https://github.com/desuwa/hivebbs/wiki/Markup" tabindex="-1" target="_blank" title="Markup syntax">?</a><% if @thread %><label id="sage-label"><input type="checkbox" name="sage" value="1" tabindex="-1" id="sage-box">sage</label><% end %><textarea id="comment-field" name="comment" rows="5" cols="60"></textarea></td>
     </tr>
     <% if cfg(:file_uploads, @board_cfg) %><tr>
       <th><label for="file-field">File</label></th>
-      <td><input type="file" name="file" id="file-field"><label id="spoiler-label"><input type="checkbox" name="spoiler" value="1" tabindex="-1" id="spoiler-box">spoiler</label></td>
+      <td><% if cfg(:tegaki, @board_cfg) %><span id="tegaki-btn" class="link-span" data-width="<%= cfg(:tegaki_width, @board_cfg) %>" data-height="<%= cfg(:tegaki_height, @board_cfg) %>" data-limit="<%= cfg(:tegaki_data_limit, @board_cfg) %>" data-cmd="tegaki">Draw</span><% end %><input type="file" name="file" id="file-field"><label id="spoiler-label"><input type="checkbox" name="spoiler" value="1" tabindex="-1" id="spoiler-box">spoiler</label></td>
     </tr><% end %>
     </tbody>
     <tfoot>

@@ -1,3 +1,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="<%= asset('/stylesheets/hive.css'.freeze) %>">
   <script type="text/javascript" src="<%= asset('/javascripts/hive.js'.freeze) %>"></script>
+  <% if cfg(:tegaki, @board_cfg) %><script type="text/javascript" src="<%= asset('/javascripts/tegaki.js'.freeze) %>"></script>
+  <link rel="stylesheet" href="<%= asset('/stylesheets/tegaki.css'.freeze) %>">
+  <% end %>

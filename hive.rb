@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'base64'
 require 'bcrypt'
 require 'erubis'
 require 'escape_utils'
@@ -259,11 +260,19 @@ class BBS < Sinatra::Base
       end
     end
     
-    file = params['file']
+    if file = params['tegaki']
+      file = file.to_s
+      
+      if file.size > cfg(:tegaki_data_limit, @board_cfg)
+        failure t(:file_size_too_big)
+      end
+      
+      file = decode_tegaki_upload(file)
+    else
+      file = params['file']
+    end
     
-    has_file = file.is_a?(Hash) && cfg(:file_uploads, board)
-    
-    if has_file
+    if has_file = file.is_a?(Hash)
       tmp_thumb_path = nil
       
       file_hash = OpenSSL::Digest::MD5.file(file[:tempfile].path).hexdigest
@@ -280,15 +289,7 @@ class BBS < Sinatra::Base
         failure t(:dup_file_reply) if dup_file
       end
       
-      if file_ext = file[:filename].scan(/\.([a-z0-9]+$)/i)[0]
-        file_ext = file_ext[0].downcase
-      else
-        failure t(:bad_file_format)
-      end
-      
-      if !cfg(:file_types).include?(file_ext)
-        failure t(:bad_file_format)
-      end
+      file_ext = file[:filename].scan(/\.([a-z0-9]+$)/i).flatten.join.downcase
       
       tmp_thumb_path =
         "#{settings.tmp_dir}/#{board[:id]}_#{thread_num}_#{file_hash}.jpg"
@@ -443,6 +444,7 @@ class BBS < Sinatra::Base
     slug = params['board'].to_s
     thread_num = params['thread'].to_i
     post_num = params['post'].to_i
+    file_only = !!params['file_only']
     
     if slug.empty? || thread_num.zero? || post_num.zero?
       bad_request
@@ -454,7 +456,7 @@ class BBS < Sinatra::Base
     thread = DB[:threads].first(:board_id => board[:id], :num => thread_num)
     failure t(:bad_thread) unless thread
     
-    if post_num == 1
+    if post_num == 1 && !file_only
       delete_threads([thread])
     else
       post = DB[:posts]
@@ -463,7 +465,11 @@ class BBS < Sinatra::Base
       
       failure t(:bad_post) unless post
       
-      delete_posts(thread, [post])
+      if file_only
+        delete_post_files(thread, [post])
+      else
+        delete_posts(thread, [post])
+      end
     end
     
     success t(:done), "#{board[:slug]}/read/#{thread[:num]}"

@@ -27,6 +27,11 @@
   
   file_uploads: false,
   
+  tegaki: false,
+  tegaki_width: 380,
+  tegaki_height: 380,
+  tegaki_data_limit: 1 * 1048576,
+  
   file_types: [ 'jpg', 'png', 'gif', 'webm' ],
   
   file_limits: {

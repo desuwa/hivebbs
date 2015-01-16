@@ -70,6 +70,8 @@ thead { font-weight: bold; }
 
 .disabled { opacity: 0.5; }
 .hidden { display: none !important; }
+.invisible { visibility: hidden; }
+.tainted:after { content: '*'; }
 
 .aa {
   line-height: 17px;
@@ -102,11 +104,9 @@ td, th {
   padding: 2px 5px 2px 0;
 }
 
-input { vertical-align: middle; }
-
-input,
-label {
+input {
   margin-right: 5px;
+  vertical-align: middle;
 }
 
 .error {
@@ -303,13 +303,19 @@ footer {
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
+#tegaki-btn,
 #comment-preview-btn {
+  font-size: 12px;
+  margin: 0 5px;
+}
+
+#post-form a {
   font-size: 12px;
 }
 
 #file-field {
   font-size: 14px;
-  max-width: 250px;
+  max-width: 210px;
 }
 
 #sage-label,

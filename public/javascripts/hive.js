@@ -274,7 +274,8 @@ var Hive = {
       'q': Hive.onPostNumClick,
       'fexp': Hive.onFileClick,
       'fcon': Hive.closeGallery,
-      'markup': Hive.onMarkupClick
+      'markup': Hive.onMarkupClick,
+      'tegaki': Hive.onTegakiClick
     };
     
     $.on(document, 'click', Hive.onClick);
@@ -289,11 +290,19 @@ var Hive = {
   },
   
   onClick: function(e) {
-    var cmd = e.target.getAttribute('data-cmd'), cb;
+    var t, cmd, cb;
+    
+    t = e.target;
+    
+    if (t === document) {
+      return;
+    }
+    
+    cmd = t.getAttribute('data-cmd');
     
     if (cmd && e.which === 1 && (cb = Hive.clickCommands[cmd])) {
       e.preventDefault();
-      cb(e.target);
+      cb(t);
     }
   },
   
@@ -301,6 +310,83 @@ var Hive = {
     if (Hive.xhr[id]) {
       Hive.xhr[id].abort();
       delete Hive.xhr[id];
+    }
+  },
+  
+  onTegakiClick: function(t) {
+    if (t.hasAttribute('data-active')) {
+      Hive.closeTegaki(t);
+    }
+    else {
+      Hive.showTegaki(t);
+    }
+  },
+  
+  showTegaki: function(t) {
+    Tegaki.open({
+      onDone: Hive.onTegakiDone,
+      onCancel: Hive.onTegakiCancel,
+      canvasOptions: Hive.buildTegakiCanvasList,
+      width: +t.getAttribute('data-width'),
+      height: +t.getAttribute('data-height')
+    });
+  },
+  
+  buildTegakiCanvasList: function(el) {
+    var i, a, opt, nodes = $.cls('post-file-thumb');
+    
+    for (i = 0; a = nodes[i]; ++i) {
+      if (/\.(png|jpg)$/.test(a.href)) {
+        opt = $.el('option');
+        opt.value = a.href;
+        opt.textContent = '>>' + a.parentNode.parentNode.id;
+        el.appendChild(opt);
+      }
+    }
+  },
+  
+  onTegakiDone: function() {
+    var input, data, thres, limit;
+    
+    input = $.id('tegaki-data');
+    
+    if (!input) {
+      input = $.el('input');
+      input.id = 'tegaki-data';
+      input.name = 'tegaki';
+      input.type = 'hidden';
+      
+      $.id('post-form').appendChild(input);
+      
+      $.id('file-field').classList.add('invisible');
+      $.id('tegaki-btn').classList.add('tainted');
+    }
+    
+    limit = +$.id('tegaki-btn').getAttribute('data-limit');
+    thres = Tegaki.canvas.width * Tegaki.canvas.height;
+    
+    if (thres > limit) {
+      data = Tegaki.flatten().toDataURL('image/jpeg', 0.9);
+    }
+    else {
+      data = Tegaki.flatten().toDataURL('image/png');
+    }
+    
+    if (data.length > limit) {
+      alert('The resulting file size is too big.');
+    }
+    else {
+      input.value = data;
+    }
+  },
+  
+  onTegakiCancel: function() {
+    var input;
+    
+    if (input = $.id('tegaki-data')) {
+      input.parentNode.removeChild(input);
+      $.id('file-field').classList.remove('invisible');
+      $.id('tegaki-btn').classList.remove('tainted');
     }
   },
   
