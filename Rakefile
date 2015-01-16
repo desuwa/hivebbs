@@ -43,16 +43,20 @@ namespace :build do
     require 'uglifier'
     
     root = 'public/javascripts'
-    
     u = Uglifier.new(screw_ie8: true)
-    js, sm = u.compile_with_map(File.read("#{root}/hive.js"))
     
-    Zlib::GzipWriter.open("#{root}/hive.min.js.gz") do |gz|
-      gz.write(js)
+    ['hive', 'tegaki', 'manage'].each do |basename|
+      next unless File.exist?("#{root}/#{basename}.js")
+      
+      js, sm = u.compile_with_map(File.read("#{root}/#{basename}.js"))
+      
+      Zlib::GzipWriter.open("#{root}/#{basename}.min.js.gz") do |gz|
+        gz.write(js)
+      end
+      
+      File.open("#{root}/#{basename}.min.js", 'w') { |f| f.write js }
+      File.open("#{root}/#{basename}.min.js.map", 'w') { |f| f.write sm }
     end
-    
-    File.open("#{root}/hive.min.js", 'w') { |f| f.write js }
-    File.open("#{root}/hive.min.js.map", 'w') { |f| f.write sm }
   end
   
   desc 'Minify and precompress CSS'
