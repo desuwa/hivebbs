@@ -150,6 +150,12 @@ Then, inside the `server` block:
 
 File uploads are disabled by default. You need [ImageMagick](http://www.imagemagick.org/script/install-source.php) to handle image files and [FFmpeg](https://trac.ffmpeg.org/wiki/CompilationGuide) for webm.
 
+#### Additional dependencies
+
+Gems:  
+`uglifier` to minify JavaScript  
+`sass` to minify CSS
+
 #### The End
 
 If your server isn't accessible through HTTPS, you'll need to set the `secure_cookies` option to `false` inside `config/config.rb`, otherwise you won't be able to log in.
