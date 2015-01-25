@@ -458,6 +458,13 @@ class BBS < Sinatra::Base
     
     if post_num == 1 && !file_only
       delete_threads([thread])
+      
+      posts = DB[:posts]
+        .select(:id, :num, :file_hash, :meta)
+        .where(:thread_id => thread[:id])
+        .all
+      
+      delete_posts(thread, posts)
     else
       post = DB[:posts]
         .select(:id, :num, :file_hash, :meta)

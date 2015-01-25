@@ -190,10 +190,6 @@ class BBS < Sinatra::Base
     root = "#{settings.files_dir}/#{thread[:board_id]}/#{thread[:id]}"
     
     posts.each do |post|
-      if post[:num] == 1
-        next
-      end
-      
       ids << post[:id]
       
       if post[:file_hash]
