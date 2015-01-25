@@ -76,8 +76,8 @@ class HiveSpec < MiniTest::Spec
         table = row.values.first
         next if table == 'schema_info'
         DB.run("DELETE FROM #{table}")
-        DB.run("DELETE FROM sqlite_sequence WHERE name = '#{table}'")
       end
+      DB.run("DROP TABLE IF EXISTS sqlite_sequence")
     elsif DB.database_type == :postgres
       sql = "SELECT table_name FROM information_schema.tables " <<
             "WHERE table_schema='public'"
