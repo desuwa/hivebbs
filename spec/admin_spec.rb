@@ -188,7 +188,10 @@ class HiveSpec < MiniTest::Spec
           File.exist?("#{dir}/dead#{i}.jpg").must_equal false, "file #{i}"
           File.exist?("#{dir}/t_dead#{i}.jpg").must_equal false, "thumb #{i}"
         end
-      end
+        
+        assert_nil DB[:threads].first(:id => tid), 'thread'
+        assert_empty DB[:posts].where(:thread_id => tid).all, 'replies'
+     end
     end
     
     it 'deletes files only' do
