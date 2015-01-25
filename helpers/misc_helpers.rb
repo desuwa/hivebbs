@@ -62,6 +62,8 @@ class BBS < Sinatra::Base
     
     start = data.index(','.freeze)
     
+    failure t(:bad_file_format) if !start
+    
     data = Base64.decode64(data[start, (data.size - start)])
     
     tmp = Tempfile.new('hive'.freeze)
