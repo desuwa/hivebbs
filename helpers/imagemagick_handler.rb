@@ -14,12 +14,8 @@ class BBS < Sinatra::Base
     status, output = run_cmd(cmd, 10)
     
     if status != 0
-      if output.strip.include?('no decode delegate')
-        failure t(:bad_file_format)
-      else
-        logger.error "identify failed: #{output.strip}"
-        failure t(:server_error)
-      end
+      #logger.error "identify failed: #{output.strip}"
+      failure t(:bad_file_format)
     end
     
     image_info = output.strip.split(' ')
