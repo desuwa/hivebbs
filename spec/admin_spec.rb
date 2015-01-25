@@ -190,5 +190,28 @@ class HiveSpec < MiniTest::Spec
         end
       end
     end
+    
+    it 'deletes files only' do
+      DB.transaction(:rollback => :always) do
+        tid, tnum = prepare_thread
+        
+        sid_as('admin')
+        
+        dir = "#{app.settings.files_dir}/1/#{tid}"
+        
+        post '/manage/posts/delete', {
+          'board' => 'test', 'thread' => tnum, 'post' => '3',
+          'csrf' => 'ok', 'file_only' => '1'
+        }
+        
+        assert last_response.body.include?(t(:done)), last_response.body
+        
+        refute_nil DB[:threads].first(:id => tid), 'thread'
+        refute_empty DB[:posts].where(:thread_id => tid).all, 'replies'
+        
+        File.exist?("#{dir}/dead3.jpg").must_equal false, 'file 3'
+        File.exist?("#{dir}/t_dead3.jpg").must_equal false, 'thumb 3'
+      end
+    end
   end
 end
