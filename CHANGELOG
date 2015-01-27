@@ -1,3 +1,10 @@
+0.2.0 - 2015-01-27
+  * File spoilers
+  * File-only deletion for moderators
+  * Tegaki support
+  * Fix replies not being deleted from the database along with original posts
+  * Minify manage.js, hive.js, tegaki.js in rake build
+
 0.1.0 - 2014-10-06
   
   * Added markdown-like comment formatting. This depends on the hive_markup gem.
