@@ -367,7 +367,7 @@ footer {
   display: block;
 }
 
-.form input,
+.form input[type=text],
 .form select,
 .form textarea {
   min-width: 100%;
