@@ -145,5 +145,39 @@ class HiveSpec < MiniTest::Spec
         th[:updated_on].must_equal updated_on
       end
     end
+    
+    describe 'Captcha' do
+      it 'validates reCaptcha v2' do
+        CONFIG[:captcha] = true
+        
+        stub_instance(Net::HTTP, :get, Net::HTTPResponse.new(1.0, 200, 'OK')) do
+          # Empty captcha
+          stub_instance(Net::HTTPResponse, :body, '{"success":true}') do
+            DB.transaction(:rollback => :always) do
+              make_post({ 'title' => 'test', 'comment' => 'test' })
+            end
+          end
+          assert last_response.body.include?(t(:captcha_empty_error)), 'Empty'
+          
+          # Bad captcha
+          stub_instance(Net::HTTPResponse, :body, '{"success":false}') do
+            DB.transaction(:rollback => :always) do
+              make_post({ 'title' => 'test', 'comment' => 'test',
+                'g-recaptcha-response' => 'x' })
+            end
+          end
+          assert last_response.body.include?(t(:captcha_invalid_error)), 'Bad'
+          
+          # Good captcha
+          stub_instance(Net::HTTPResponse, :body, '{"success":true}') do
+            DB.transaction(:rollback => :always) do
+              make_post({ 'title' => 'test', 'comment' => 'test',
+                'g-recaptcha-response' => 'x' })
+            end
+          end
+          assert last_response.body.include?('http-equiv="Refresh"'), 'Good'
+        end
+      end
+    end
   end
 end

@@ -138,9 +138,32 @@ class HiveSpec < MiniTest::Spec
         updated_on: now
       })
     end
-  
   end
-
+  
+  def stub_instance(klass, method, ret)
+    tmp_method = "__hive_#{method}"
+    
+    klass.class_eval do
+      alias_method tmp_method, method
+      
+      define_method(method) do |*args|
+        if ret.respond_to? :call
+          ret.call(*args)
+        else
+          ret
+        end
+      end
+    end
+    
+    yield
+  ensure
+    klass.class_eval do
+      undef_method method
+      alias_method method, tmp_method
+      undef_method tmp_method
+    end
+  end
+  
   Minitest.after_run do
     DIRS.each do |dir|
       path = BBS.settings.send(dir)
