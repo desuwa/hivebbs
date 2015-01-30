@@ -275,6 +275,7 @@ var Hive = {
       'fexp': Hive.onFileClick,
       'fcon': Hive.closeGallery,
       'markup': Hive.onMarkupClick,
+      'captcha': Hive.onCaptchaClick,
       'tegaki': Hive.onTegakiClick
     };
     
@@ -304,6 +305,13 @@ var Hive = {
       e.preventDefault();
       cb(t);
     }
+  },
+  
+  onCaptchaClick: function(t) {
+    var el = $.el('script');
+    el.src = 'https://www.google.com/recaptcha/api.js';
+    document.head.appendChild(el);
+    t.classList.add('hidden');
   },
   
   abortXhr: function(id) {

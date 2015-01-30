@@ -282,6 +282,55 @@ footer {
 
 #post-form tfoot { text-align: right; }
 
+.captcha-loading {
+  height: 74px;
+  width: 300px;
+}
+
+#captcha-toggle { margin-right: 10px }
+
+#post-form .g-recaptcha > div{
+  float: right;
+  margin: 5px 0;
+}
+
+#captcha-fallback {
+  float: right;
+  margin: 5px 0;
+}
+
+#captcha-fallback,
+#captcha-fallback #cfb-wrap,
+#captcha-fallback #cfb-icnt,
+#captcha-fallback iframe {
+  width: 302px;
+  height: 352px;
+}
+
+#captcha-fallback #cfb-wrap { position: relative }
+#captcha-fallback #cfb-icnt { position: absolute }
+#captcha-fallback iframe { border-style: none }
+#captcha-fallback #g-recaptcha-response {
+  width: 250px;
+  height: 80px;
+  border: 1px solid #c1c1c1;
+  margin: 0px;
+  padding: 0px;
+  resize: none;
+}
+
+#captcha-fallback #cfb-tcnt {
+  width: 250px;
+  height: 80px;
+  position: absolute;
+  border-style: none;
+  bottom: 21px;
+  left: 25px;
+  margin: 0px;
+  padding: 0px;
+  right: 25px;
+}
+
 #email-field { display: none; }
 
 #author-field,

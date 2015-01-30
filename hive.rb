@@ -9,6 +9,7 @@ require 'hive_markup'
 require 'ipaddr'
 require 'json'
 require 'logger'
+require 'net/https'
 require 'openssl'
 require 'resolv'
 require 'sequel'
@@ -121,6 +122,8 @@ class BBS < Sinatra::Base
     failure t(:bad_board) if !board
     
     @board_cfg = get_board_config(board)
+    
+    verify_captcha if cfg(:captcha, @board_cfg)
     
     now = Time.now.utc.to_i
     

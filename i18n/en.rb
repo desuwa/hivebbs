@@ -20,6 +20,9 @@
   honeypot: 'Do not fill in this field.',
   thread_full: 'Reply limit reached.',
   cmd_forbidden: 'You cannot use this command.',
+  captcha_generic_error: "Couldn't verify the captcha.",
+  captcha_invalid_error: 'You seem to have mistyped the captcha.',
+  captcha_empty_error: 'You forgot to solve the captcha.',
   
   # File validation
   file_size_too_big: 'File size too big.',

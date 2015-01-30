@@ -22,8 +22,15 @@
     </tr><% end %>
     </tbody>
     <tfoot>
+    <% if cfg(:captcha, @board_cfg) %>
+    <tr><td colspan="2"><div id="captcha-cnt" class="g-recaptcha" data-sitekey="<%= cfg(:captcha_public_key) %>"></div>
+      <noscript><div id="captcha-fallback"><div id="cfb-wrap">
+        <div id="cfb-icnt"><iframe src="https://www.google.com/recaptcha/api/fallback?k=<%= cfg(:captcha_public_key) %>" frameborder="0" scrolling="no"></iframe></div>
+        <div id="cfb-tcnt"><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" value=""></textarea></div>
+      </div></div></noscript>
+    </td></tr><% end %>
     <tr>
-      <td colspan="2"><button type="submit">Submit</button></td>
+      <td colspan="2"><% if cfg(:captcha, @board_cfg) %><span id="captcha-toggle" class="link-span mini-type" data-cmd="captcha">Display Captcha</span><% end %><button type="submit">Submit</button></td>
     </tr>
     </tfoot>
   </table>

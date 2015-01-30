@@ -25,6 +25,10 @@
   thumb_dimensions: 100,
   thumb_quality: 80,
   
+  captcha: false,
+  captcha_public_key: nil,
+  captcha_private_key: nil,
+  
   file_uploads: false,
   
   tegaki: false,

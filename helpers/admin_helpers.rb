@@ -39,6 +39,34 @@ class BBS < Sinatra::Base
   rescue URI::InvalidURIError
   end
   
+  def verify_captcha
+    resp_token = params['g-recaptcha-response'.freeze]
+    
+    failure t(:captcha_empty_error) if !resp_token || resp_token.empty?
+    
+    data = {
+      'secret'.freeze => cfg(:captcha_private_key),
+      'response'.freeze => resp_token
+    }
+    
+    resp = nil
+    
+    Timeout::timeout(3) do
+      http = Net::HTTP.new('www.google.com'.freeze, 443)
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      resp = http.get("/recaptcha/api/siteverify?#{URI.encode_www_form(data)}")
+    end
+    
+    captcha = JSON.parse(resp.body)
+    
+    if captcha['success'.freeze] != true
+      failure t(:captcha_invalid_error)
+    end
+  rescue
+    failure t(:captcha_generic_error)
+  end
+  
   def hash_password(plain_pwd)
     BCrypt::Password.create(plain_pwd)
   end
