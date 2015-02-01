@@ -1,3 +1,7 @@
+0.3.0 - 2015-02-01
+  * Captcha support
+  * Minify tegaki.css in rake build
+
 0.2.0 - 2015-01-27
   * File spoilers
   * File-only deletion for moderators
