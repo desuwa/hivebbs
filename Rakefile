@@ -66,18 +66,22 @@ namespace :build do
     
     root = 'public/stylesheets'
     
-    sass = Sass::Engine.new(
-      File.read("#{root}/hive.css"),
-      style: :compressed, cache: false, syntax: :scss
-    )
-    
-    css = sass.render
-    
-    Zlib::GzipWriter.open("#{root}/hive.min.css.gz") do |gz|
-      gz.write(css)
+    ['hive', 'tegaki'].each do |basename|
+      next unless File.exist?("#{root}/#{basename}.css")
+      
+      sass = Sass::Engine.new(
+        File.read("#{root}/#{basename}.css"),
+        style: :compressed, cache: false, syntax: :scss
+      )
+      
+      css = sass.render
+      
+      Zlib::GzipWriter.open("#{root}/#{basename}.min.css.gz") do |gz|
+        gz.write(css)
+      end
+      
+      File.open("#{root}/#{basename}.min.css", 'w') { |f| f.write css }
     end
-    
-    File.open("#{root}/hive.min.css", 'w') { |f| f.write css }
   end
 end
 
