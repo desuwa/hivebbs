@@ -43,12 +43,18 @@ namespace :build do
     require 'uglifier'
     
     root = 'public/javascripts'
-    u = Uglifier.new(screw_ie8: true)
-    
     ['hive', 'tegaki', 'manage'].each do |basename|
       next unless File.exist?("#{root}/#{basename}.js")
       
+      u = Uglifier.new(
+        screw_ie8: true,
+        source_filename: "#{basename}.js",
+        output_filename: "#{basename}.min.js"
+      )
+      
       js, sm = u.compile_with_map(File.read("#{root}/#{basename}.js"))
+      
+      js << "\n//# sourceMappingURL=#{basename}.min.js.map"
       
       Zlib::GzipWriter.open("#{root}/#{basename}.min.js.gz") do |gz|
         gz.write(js)

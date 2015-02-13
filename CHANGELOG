@@ -1,3 +1,5 @@
+  * Fix source map generation when building JS
+
 0.3.0 - 2015-02-01
   * Captcha support
   * Minify tegaki.css in rake build
