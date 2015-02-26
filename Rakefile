@@ -112,8 +112,10 @@ namespace :db do
   end
   
   desc 'Run migrations'
-  task :migrate do |t|
+  task :migrate, [:cfg] do |t, args|
     require 'sequel'
+    
+    cfg = "config/#{args.cfg}.rb" if args.cfg
     
     DB = Sequel.connect(eval(File.open(cfg, 'r') { |f| f.read }))
     
