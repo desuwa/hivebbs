@@ -1,3 +1,8 @@
+0.4.0 - 2015-02-26
+  * Basic post reporting. Run rake db:migrate to update the database schema
+  * The db:migrate task now accepts an argument to specify a config file:
+    - ex: rake db:migrate[db_test] will use config/db_test.rb
+  * Fix replies not getting deleted properly when pruning overflowing threads
   * Fix source map generation when building JS
 
 0.3.0 - 2015-02-01
@@ -12,7 +17,6 @@
   * Minify manage.js, hive.js, tegaki.js in rake build
 
 0.1.0 - 2014-10-06
-  
   * Added markdown-like comment formatting. This depends on the hive_markup gem.
   * Fixed quotelinks not targeting posts when clicked.
   * Added partial support for assets versioning:
@@ -24,5 +28,4 @@
     - rake build:css depends on the sass gem and will minify hive.css
 
 0.0.1 - 2014-09-21
-  
   * First public release.
