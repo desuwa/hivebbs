@@ -115,7 +115,7 @@ class BBS < Sinatra::Base
   post '/post' do
     validate_referrer
     
-    halt if params['email'] && !params['email'].empty?
+    validate_honeypot
     
     board = DB[:boards].where(:slug => params['board'].to_s).first
     
@@ -438,6 +438,74 @@ class BBS < Sinatra::Base
     erb :post
   end
   
+  get '/report/:slug/:thread_num/:post_num' do
+    failure t(:cannot_report) unless cfg(:post_reporting)
+    
+    now = Time.now.utc.to_i
+    throttle = now - cfg(:delay_report)
+    
+    ip_addr = request.ip
+    
+    if DB[:reports].select(1).reverse_order(:id)
+      .first('ip = ? AND created_on > ?', ip_addr, throttle)
+      failure t(:fast_report)
+    end
+    
+    erb :report
+  end
+  
+  post '/report/:slug/:thread_num/:post_num' do
+    failure t(:cannot_report) unless cfg(:post_reporting)
+    
+    validate_referrer
+    
+    validate_honeypot
+    
+    verify_captcha if cfg(:report_captcha)
+    
+    slug = params[:slug].to_s
+    thread_num = params[:thread_num].to_i
+    post_num = params[:post_num].to_i
+    cat = params['category'].to_s
+    
+    post = get_post_by_path(slug, thread_num, post_num)
+    
+    failure t(:bad_post) unless post
+    
+    if !cfg(:report_categories).empty?
+      failure t(:bad_report_cat) unless score = cfg(:report_categories)[cat]
+    else
+      cat = ''
+      score = 1
+    end
+    
+    ip_addr = request.ip
+    
+    if DB[:reports].first('ip = ? AND post_id = ?', ip_addr, post[:id])
+      failure t(:duplicate_report)
+    end
+    
+    now = Time.now.utc.to_i
+    throttle = now - cfg(:delay_report)
+    
+    if DB[:reports].select(1).reverse_order(:id)
+      .first('ip = ? AND created_on > ?', ip_addr, throttle)
+      failure t(:fast_report)
+    end
+    
+    DB[:reports].insert({
+      board_id: post[:board_id],
+      thread_id: post[:thread_id],
+      post_id: post[:id],
+      created_on: now,
+      ip: ip_addr,
+      score: score,
+      category: cat
+    })
+    
+    success t(:done)
+  end
+  
   post '/manage/posts/delete' do
     validate_csrf_token
     
@@ -461,25 +529,14 @@ class BBS < Sinatra::Base
     
     if post_num == 1 && !file_only
       delete_threads([thread])
-      
-      posts = DB[:posts]
-        .select(:id, :num, :file_hash, :meta)
-        .where(:thread_id => thread[:id])
-        .all
-      
-      delete_posts(thread, posts)
     else
       post = DB[:posts]
-        .select(:id, :num, :file_hash, :meta)
+        .select(:id, :board_id, :thread_id, :num, :file_hash, :meta)
         .first(:thread_id => thread[:id], :num => post_num)
       
       failure t(:bad_post) unless post
       
-      if file_only
-        delete_post_files(thread, [post])
-      else
-        delete_posts(thread, [post])
-      end
+      delete_replies([post], file_only)
     end
     
     success t(:done), "#{board[:slug]}/read/#{thread[:num]}"
@@ -733,6 +790,44 @@ class BBS < Sinatra::Base
     clear_session_cookies
     
     redirect '/'
+  end
+  
+  get '/manage/reports' do
+    forbidden unless user = get_user_session
+    forbidden unless user_has_level?(user, :mod)
+    
+    @posts = DB[:reports]
+      .select_all(:posts)
+      .select_append(
+        :threads__title,
+        :threads__post_count,
+        :threads__num___thread_num,
+        :boards__slug,
+        Sequel.function(:count, :score).as(:total),
+        Sequel.function(:sum, :score).as(:score)
+      )
+      .inner_join(:posts, :id => :post_id)
+      .inner_join(:threads, :id => :thread_id)
+      .inner_join(:boards, :id => :board_id)
+      .group(:post_id)
+      .reverse_order(:score, :post_id)
+    
+    erb :manage_reports
+  end
+  
+  post '/manage/reports/delete' do
+    validate_csrf_token
+    
+    forbidden unless user = get_user_session
+    forbidden unless user_has_level?(user, :mod)
+    
+    post_id = params['post_id'].to_i
+    
+    failure t(:bad_request) if post_id.zero?
+    
+    DB[:reports].where(:post_id => post_id).delete
+    
+    success t(:done)
   end
   
   get '/manage/boards' do

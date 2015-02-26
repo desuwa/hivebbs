@@ -12,20 +12,20 @@ class HiveSpec < MiniTest::Spec
     :admin => {
       :get => [
         '/boards', '/boards/create', '/boards/update/1',
-        '/users', '/users/create', '/users/update/1',
+        '/users', '/users/create', '/users/update/1'
       ],
       :post => [
         '/boards/create', '/boards/update/1', '/boards/delete/1',
-        '/users/create', '/users/update/1',
+        '/users/create', '/users/update/1'
       ]
     },
     :mod => {
       :get => [
-        '/bans', '/bans/create/test/1/1', '/boards/update/1',
+        '/bans', '/bans/create/test/1/1', '/boards/update/1', '/reports'
       ],
       :post => [
         '/bans/create/test/1/1', '/boards/update/1',
-        '/posts/delete'
+        '/posts/delete', '/reports/delete'
       ]
     }
   }
@@ -214,6 +214,63 @@ class HiveSpec < MiniTest::Spec
         
         File.exist?("#{dir}/dead3.jpg").must_equal false, 'file 3'
         File.exist?("#{dir}/t_dead3.jpg").must_equal false, 'thumb 3'
+      end
+    end
+  end
+  
+  describe '/manage/reports' do
+    def prepare_report
+      DB[:reports].insert({
+        board_id: 1,
+        thread_id: 1,
+        post_id: 1,
+        created_on: Time.now.utc.to_i,
+        ip: '127.0.0.1',
+        score: 1,
+        category: ''
+      })
+    end
+    
+    it 'clears reports by post id' do
+      DB.transaction(:rollback => :always) do
+        prepare_report
+        
+        sid_as('mod')
+        
+        post '/manage/reports/delete', { 'post_id' => '1', 'csrf' => 'ok' }
+        
+        count = DB[:reports].count
+        
+        assert_equal(0, count)
+      end
+    end
+    
+    it 'clears reports when a post is deleted' do
+      DB.transaction(:rollback => :always) do
+        prepare_report
+        
+        sid_as('mod')
+        
+        post '/manage/posts/delete', {
+          'board' => 'test', 'thread' => '1', 'post' => '1', 'csrf' => 'ok'
+        }
+        
+        assert_equal(0, DB[:reports].count)
+      end
+    end
+    
+    it 'clears reports when a file is deleted' do
+      DB.transaction(:rollback => :always) do
+        prepare_report
+        
+        sid_as('mod')
+        
+        post '/manage/posts/delete', {
+          'board' => 'test', 'thread' => '1', 'post' => '1',
+          'file_only' => '1', 'csrf' => 'ok'
+        }
+        
+        assert_equal(0, DB[:reports].count)
       end
     end
   end

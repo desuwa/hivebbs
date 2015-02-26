@@ -18,7 +18,9 @@ class HiveSpec < MiniTest::Spec
   
   CONFIG[:delay_thread] = 0
   CONFIG[:delay_reply] = 0
+  CONFIG[:delay_report] = 0
   CONFIG[:file_uploads] = true
+  CONFIG[:post_reporting] = true
   
   CONFIG_CLEAN = Marshal.load(Marshal.dump(CONFIG))
   

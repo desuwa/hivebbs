@@ -157,9 +157,8 @@ input {
 }
 
 .post-author,
-.post-date,
-.replies {
-  margin-left: 0.5em;
+.post-date {
+  margin-left: 0.25em;
 }
 
 .post-author {
@@ -182,6 +181,39 @@ input {
   margin-top: 10px;
   max-width: 100%;
   word-wrap: break-word;
+}
+
+.post-menu {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  visibility: hidden;
+}
+
+.post:hover .post-menu {
+  visibility: visible;
+  -moz-transition: visibility 0s 0.5s linear;
+  -webkit-transition: visibility 0s 0.5s linear;
+  transition: visibility 0s 0.5s linear;
+}
+
+.post-menu:before {
+  /*content: '…';
+  font-size: 10px;
+  top: -4px;*/
+  content: '⚑';
+  color: #C41E3A;
+  margin-left: 0.25em;
+  width: 14px;
+  font-style: normal;
+  font-weight: normal;
+  display: inline-block;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  cursor: pointer;
+  position: relative;
 }
 
 .post-comment p { margin-bottom: 15px; }
@@ -269,7 +301,7 @@ header {
 
 footer {
   text-align: center;
-  margin: 10px 40px 10px 40px;
+  margin: 40px 0 20px 0;
 }
 
 #post-form table {
@@ -538,6 +570,83 @@ input[type="checkbox"] {
 #ban-list .ban-list-reason {
   text-align: left;
 }
+
+#post-report-form #captcha-cnt {
+  margin-top: 15px;
+}
+
+.post-board {
+  font-weight: bold;
+}
+
+.post-report {
+  background-color: #fff;
+  margin-bottom: 18px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.post-report .rc {
+  margin-left: 0.25em;
+}
+
+.post-report .rc:before {
+  content: '»';
+}
+
+.post-report .pc {
+  color: #708090;
+}
+
+.post-report-meta {
+  margin-bottom: 4px;
+}
+
+.post-title {
+  display: inline-block;
+}
+
+.is-reply .rc:before {
+  content: '↪';
+  font-size: 11px;
+}
+
+.post-report .post-head {
+  padding: 4px 6px 0 6px;
+}
+
+.post-report .post-comment {
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.post-report-score {
+  font-size: 12px;
+  float: right;
+  color: #708090;
+  cursor: default;
+}
+
+.post-report-ctrl {
+  width: 100%;
+  box-shadow: inset 0 1px 1px -1px rgba(0, 0, 0, 0.3);
+}
+
+.post-report-ctrl a,
+.post-report-ctrl .link-span {
+  font-size: 10px;
+  display: inline-block;
+  margin: 0 6px 6px 6px;
+  text-transform: uppercase;
+}
+
+.post-report-score,
+.post-report-ctrl a,
+.post-report-ctrl .link-span {
+  font-family: 'Segoe UI', 'Helvetica Neue', Optima, Calibri, Arial, sans-serif;
+}
+
 
 @media (max-width: 480px) {
 #post-form table {

@@ -39,6 +39,10 @@ class BBS < Sinatra::Base
   rescue URI::InvalidURIError
   end
   
+  def validate_honeypot
+    halt if params['email'] && !params['email'].empty?
+  end
+  
   def verify_captcha
     resp_token = params['g-recaptcha-response'.freeze]
     
@@ -207,48 +211,39 @@ class BBS < Sinatra::Base
     end
     
     DB[:threads].where(:id => ids).delete
+    DB[:posts].where(:thread_id => ids).delete
+    
+    dismiss_reports(:thread_id => ids) if cfg(:post_reporting)
     
     FileUtils.rm_rf(paths)
   end
   
-  def delete_posts(thread, posts)
+  def delete_replies(posts, file_only = false)
     ids = []
     paths = []
     
-    root = "#{settings.files_dir}/#{thread[:board_id]}/#{thread[:id]}"
+    files_dir = settings.files_dir
     
     posts.each do |post|
+      next if !file_only && post[:num] == 1
+      
       ids << post[:id]
       
       if post[:file_hash]
         meta = JSON.parse(post[:meta])['file']
+        root = "#{files_dir}/#{post[:board_id]}/#{post[:thread_id]}"
         paths << "#{root}/#{post[:file_hash]}.#{meta['ext']}"
         paths << "#{root}/t_#{post[:file_hash]}.jpg"
       end
     end
     
-    DB[:posts].where(:id => ids).delete
-    
-    FileUtils.rm_f(paths)
-  end
-  
-  def delete_post_files(thread, posts)
-    ids = []
-    paths = []
-    
-    root = "#{settings.files_dir}/#{thread[:board_id]}/#{thread[:id]}"
-    
-    posts.each do |post|
-      ids << post[:id]
-      
-      if post[:file_hash]
-        meta = JSON.parse(post[:meta])['file']
-        paths << "#{root}/#{post[:file_hash]}.#{meta['ext']}"
-        paths << "#{root}/t_#{post[:file_hash]}.jpg"
-      end
+    if file_only
+      DB[:posts].where(:id => ids).update(:file_hash => nil)
+    else
+      DB[:posts].where(:id => ids).delete
     end
     
-    DB[:posts].where(:id => ids).update(:file_hash => nil)
+    dismiss_reports(:post_id => ids) if cfg(:post_reporting)
     
     FileUtils.rm_f(paths)
   end
@@ -257,6 +252,9 @@ class BBS < Sinatra::Base
     USER_LEVELS[level] <= user[:level]
   end
   
+  def dismiss_reports(by)
+    DB[:reports].where(by).delete
+  end
 end
 
 end

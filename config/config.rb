@@ -52,4 +52,13 @@
       allow_subs: true
     }
   },
+  
+  post_reporting: false,
+  reporting_captcha: false,
+  delay_report: 15,
+  
+  report_categories: {
+    #'rule' => 1,
+    #'illegal' => 100
+  }
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= erb :assets %>
+  <title>Reports</title>
+</head>
+<body>
+<div id="content">
+<ul id="nav">
+  <li><a href="/manage">Return</a></li>
+</ul>
+<h1>Reports</h1>
+<div class="section" id="post-reports">
+<%
+anon = cfg(:anon, @board_cfg)
+time_format = t(:time_format)
+@posts.each do |post|
+  meta = post[:meta] ? JSON.parse(post[:meta], symbolize_names: true) : {} %>
+<div id="<%= "#{post[:slug]}-#{post[:thread_num]}-#{post[:num]}" %>" class="post-report<% if post[:num] > 1 %> is-reply<% end %>" data-post-id="<%= post[:id] %>">
+<div class="post">
+  <div class="post-head">
+    <span title="Score: <%= post[:score].to_i %>" class="post-report-score">&times;<%= post[:total].to_i %></span>
+    <span class="post-board">/<%= post[:slug] %>/</span>
+    <span class="post-author"><%= (post[:author] || anon) %></span><% if post[:tripcode] %><span class="post-tripcode">!<%= post[:tripcode] %></span><% end %>
+    <span class="post-date" data-time="<%= post[:created_on] %>"><%= Time.at(post[:created_on]).utc.strftime(time_format) %></span>
+    <span class="post-title"><span class="rc"></span><%= post[:title] %><span class="pc">(<%= post[:post_count] %>)</span></span>
+  </div>
+  <% if post[:comment] %>
+  <div class="post-comment">
+    <%= post[:comment] %>
+  </div>
+  <% end %>
+  <% if post[:file_hash];
+  file_meta = JSON.parse(post[:meta], symbolize_names: true)[:file];
+  file_href = "/files/#{post[:board_id]}/#{post[:thread_id]}/#{post[:file_hash]}.#{file_meta[:ext]}" %>
+  <div class="post-file">
+    <div class="post-file-meta"><a href="<%= file_href %>"><%= file_meta[:ext] %> <%= file_meta[:w] %>x<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %></a></div>
+    <a class="post-file-thumb<% if file_meta[:spoiler] %> file-spoiler<% end %>" href="<%= file_href %>"><img src="/files/<%= "#{post[:board_id]}/#{post[:thread_id]}/t_#{post[:file_hash]}" %>.jpg" data-cmd="fexp" width="<%= file_meta[:th_w] %>" height="<%= file_meta[:th_h] %>" alt=""></a>
+  </div><% end %>
+</div>
+<div class="post-report-ctrl"><span class="link-span" data-cmd="delete-post">Del</span><% if post[:file_hash] %><span class="link-span" data-cmd="delete-post" data-delfile="1">DelFile</span><% end %><a target="_blank" href="/manage/bans/create/<%= "#{post[:slug]}/#{post[:thread_num]}/#{post[:num]}" %>">Ban</a><span class="link-span" data-cmd="dismiss-report">Dismiss</span><a target="_blank" href="/<%= "#{post[:slug]}/read/#{post[:thread_num]}##{post[:num]}" %>">Open</a></div>
+</div>
+<% end %>
+</div>
+</div>
+<%= erb :footer %>
+</body>
+</html>

@@ -262,6 +262,14 @@ var QuotePreviews = {
   }
 };
 
+var Report = {
+  run: function() {
+    if ($.id('captcha-cnt')) {
+      Hive.loadReCaptcha();
+    }
+  }
+};
+
 var Hive = {
   clickCommands: null,
   
@@ -275,8 +283,9 @@ var Hive = {
       'fexp': Hive.onFileClick,
       'fcon': Hive.closeGallery,
       'markup': Hive.onMarkupClick,
-      'captcha': Hive.onCaptchaClick,
-      'tegaki': Hive.onTegakiClick
+      'captcha': Hive.onDisplayCaptchaClick,
+      'tegaki': Hive.onTegakiClick,
+      'post-menu': Hive.onReportClick,
     };
     
     $.on(document, 'click', Hive.onClick);
@@ -286,6 +295,12 @@ var Hive = {
   
   run: function() {
     $.off(document, 'DOMContentLoaded', Hive.run);
+    
+    // fixme
+    if (/^\/report\//.test(location.pathname)) {
+      Report.run();
+      return;
+    }
     
     window.prettyPrint && window.prettyPrint();
   },
@@ -307,11 +322,22 @@ var Hive = {
     }
   },
   
-  onCaptchaClick: function(t) {
+  onReportClick: function(t) {
+    var params, src;
+    params = location.pathname.split('/');
+    src = '/report/' + params[1] + '/' + params[3] + '/' + t.parentNode.parentNode.id;
+    window.open(src);
+  },
+  
+  onDisplayCaptchaClick: function(t) {
+    Hive.loadReCaptcha();
+    t.classList.add('hidden');
+  },
+  
+  loadReCaptcha: function() {
     var el = $.el('script');
     el.src = 'https://www.google.com/recaptcha/api.js';
     document.head.appendChild(el);
-    t.classList.add('hidden');
   },
   
   abortXhr: function(id) {

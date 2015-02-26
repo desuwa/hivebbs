@@ -146,6 +146,18 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
+    it 'prunes stale threads' do
+      CONFIG[:thread_limit] = 1
+      DB.transaction(:rollback => :always) do
+        make_post({ 'title' => 'test-overflow', 'comment' => 'test' })
+        
+        assert_equal(0, DB[:threads].where(:id => 1).count)
+        assert_equal(0, DB[:posts].where(:thread_id => 1).count)
+        
+        File.exist?("#{app.settings.files_dir}/1/1").must_equal false, 'files'
+      end
+    end
+    
     describe 'Captcha' do
       it 'validates reCaptcha v2' do
         CONFIG[:captcha] = true

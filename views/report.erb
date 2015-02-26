@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= erb :assets %>
+  <title><%= cfg(:app_name) %></title>
+</head>
+<body>
+<div id="content">
+<h2>Reporting</h2>
+<form id="post-report-form" class="form section" action="" method="post">
+  <label id="email-field"><%= t(:honeypot) %><input type="text" name="email" value=""></label>
+  <% if !cfg(:report_categories).empty?; cfg(:report_categories).each_key do |cat| %>
+  <label><input type="radio" name="category" value="<%= cat %>"> <%= t(:report_categories)[cat] %></label>
+  <% end; end %>
+  <% if cfg(:reporting_captcha) %>
+  <div id="captcha-cnt" class="g-recaptcha captcha-loading" data-sitekey="<%= cfg(:captcha_public_key) %>"></div>
+  <noscript><div id="captcha-fallback"><div id="cfb-wrap">
+    <div id="cfb-icnt"><iframe src="https://www.google.com/recaptcha/api/fallback?k=<%= cfg(:captcha_public_key) %>" frameborder="0" scrolling="no"></iframe></div><div id="cfb-tcnt"><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" value=""></textarea></div>
+  </div></div></noscript>
+  <% end %>
+  <button type="submit">Submit</button>
+</form>
+</div>
+<%= erb :footer %>
+</body>
+</html>

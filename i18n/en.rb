@@ -44,6 +44,17 @@
   bad_thread: 'Invalid thread.',
   bad_post: 'Invalid post.',
   
+  # Reporting
+  cannot_report: 'You cannot report this post.',
+  bad_report_cat: 'Invalid report category.',
+  duplicate_report: 'You have already reported this post.',
+  fast_report: 'You have to wait a while before reporting another post.',
+  
+  report_categories: {
+    'rule' => 'Rule violation',
+    'illegal' => 'Illegal content'
+  },
+  
   # Admin
   nope: "Can't let you do that.",
   fast_auth: 'You have to wait a while before trying to log in again.',
