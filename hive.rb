@@ -21,7 +21,7 @@ Encoding.default_external = 'UTF-8'
 module Hive
 
 class BBS < Sinatra::Base
-  VERSION = '0.4.0'
+  VERSION = '0.4.1'
   
   Dir.glob("#{settings.root}/helpers/*.rb").each { |f| require f }
   
@@ -461,7 +461,7 @@ class BBS < Sinatra::Base
     
     validate_honeypot
     
-    verify_captcha if cfg(:report_captcha)
+    verify_captcha if cfg(:reporting_captcha)
     
     slug = params[:slug].to_s
     thread_num = params[:thread_num].to_i

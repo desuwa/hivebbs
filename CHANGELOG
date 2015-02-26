@@ -1,4 +1,4 @@
-0.4.0 - 2015-02-26
+0.4.1 - 2015-02-26
   * Basic post reporting. Run rake db:migrate to update the database schema
   * The db:migrate task now accepts an argument to specify a config file:
     - ex: rake db:migrate[db_test] will use config/db_test.rb
