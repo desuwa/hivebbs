@@ -231,6 +231,12 @@ class HiveSpec < MiniTest::Spec
       })
     end
     
+    it 'shows reported posts' do
+      sid_as('mod')
+      get '/manage/reports'
+      assert last_response.ok?, last_response.body
+    end
+
     it 'clears reports by post id' do
       DB.transaction(:rollback => :always) do
         prepare_report

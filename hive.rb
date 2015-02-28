@@ -797,20 +797,25 @@ class BBS < Sinatra::Base
     forbidden unless user_has_level?(user, :mod)
     
     @posts = DB[:reports]
-      .select_all(:posts)
+      .select(
+        :post_id,
+        Sequel.function(:count, :score).as(:total),
+        Sequel.function(:sum, :score).as(:score)
+      )
+      .group(:post_id)
+      .reverse_order(:score)
+      .from_self(:alias => :reports)
+      .select_all(:reports, :posts)
       .select_append(
         :threads__title,
         :threads__post_count,
         :threads__num___thread_num,
-        :boards__slug,
-        Sequel.function(:count, :score).as(:total),
-        Sequel.function(:sum, :score).as(:score)
+        :boards__slug
       )
       .inner_join(:posts, :id => :post_id)
       .inner_join(:threads, :id => :thread_id)
       .inner_join(:boards, :id => :board_id)
-      .group(:post_id)
-      .reverse_order(:score, :post_id)
+      .all 
     
     erb :manage_reports
   end
