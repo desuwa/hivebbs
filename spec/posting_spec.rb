@@ -158,6 +158,30 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
+    describe 'Banning' do
+      it 'disallows posting from a banned IPv4' do
+        DB.transaction(:rollback => :always) do
+          prepare_ban('192.0.2.1')
+          make_post(
+            { 'thread' => '1', 'comment' => 'test' },
+            { 'REMOTE_ADDR' => '192.0.2.1' }
+          )
+          assert last_response.redirection?
+        end
+      end
+      
+      it 'disallows posting from a banned IPv6 /64 block' do
+        DB.transaction(:rollback => :always) do
+          prepare_ban('2001:db8:1:1::1')
+          make_post(
+            { 'thread' => '1', 'comment' => 'test' },
+            { 'REMOTE_ADDR' => '2001:db8:1:1::2' }
+          )
+          assert last_response.redirection?
+        end
+      end
+    end
+    
     describe 'Captcha' do
       it 'validates reCaptcha v2' do
         CONFIG[:captcha] = true

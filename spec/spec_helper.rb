@@ -21,6 +21,7 @@ class HiveSpec < MiniTest::Spec
   CONFIG[:delay_report] = 0
   CONFIG[:file_uploads] = true
   CONFIG[:post_reporting] = true
+  CONFIG[:reporting_captcha] = false
   
   CONFIG_CLEAN = Marshal.load(Marshal.dump(CONFIG))
   
@@ -34,7 +35,7 @@ class HiveSpec < MiniTest::Spec
     BBS::STRINGS[str]
   end
   
-  def make_post(fields = {})
+  def make_post(fields = {}, rack_env = {})
     fields['board'] = 'test'
     
     if fields['file']
@@ -43,7 +44,43 @@ class HiveSpec < MiniTest::Spec
       )
     end
     
-    post '/post', fields
+    post '/post', fields, rack_env
+  end
+  
+  def prepare_ban(ip_str, seconds = nil, active = true)
+    now = Time.now.utc.to_i
+    
+    if !seconds
+      expires_on = BBS::MAX_BAN
+    else
+      expires_on = now + seconds
+    end
+    
+    ip_addr = IPAddr.new(ip_str)
+    
+    if ip_addr.ipv6?
+      if ip_addr.ipv4_compat? || ip_addr.ipv4_mapped?
+        ip_addr = ip_addr.native
+      else
+        ip_addr = ip_addr.mask(64)
+      end
+    end
+    
+    post = DB[:posts].first
+    
+    post[:slug] = 'test'
+    
+    DB[:bans].insert({
+      :active => active,
+      :created_on => now,
+      :expires_on => expires_on,
+      :duration => seconds.to_i / 3600,
+      :reason => 'test reason',
+      :info => 'test description',
+      :ip => Sequel::SQL::Blob.new(ip_addr.hton),
+      :created_by => 1,
+      :post => post.to_json
+    })
   end
   
   def self.reset_config

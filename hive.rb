@@ -561,17 +561,13 @@ class BBS < Sinatra::Base
       .reverse_order(:id)
       .all
     
-    if @bans.empty?
-      success t(:not_banned)
-    else
-      now = Time.now.utc.to_i
-      
+    if !@bans.empty?
       DB[:bans]
         .where('ip = ? AND active = ? AND expires_on <= ?', ip_addr, true, now)
         .update(:active => false)
-      
-      erb :banned
     end
+    
+    erb :banned
   end
   
   get '/manage/bans/create/:slug/:thread_num/:post_num' do
@@ -611,12 +607,13 @@ class BBS < Sinatra::Base
     # Expiration
     duration = params['duration'].to_i
     
-    if duration < 0 || duration > MAX_BAN
+    if duration < 0
       expires_on = MAX_BAN
     elsif duration == 0
       expires_on = 0
     else
       expires_on = now + duration * 3600
+      expires_on = MAX_BAN if expires_on > MAX_BAN
     end
     
     # Reason

@@ -280,4 +280,136 @@ class HiveSpec < MiniTest::Spec
       end
     end
   end
+  
+  describe '/manage/bans' do
+    # The duration is expressed in hours
+    
+    it 'shows a list of most recent bans' do
+      sid_as('mod')
+      get '/manage/bans'
+      assert last_response.ok?, last_response.body
+    end
+    
+    it 'creates IPv4 bans from posts' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/bans/create/test/1/1', {
+          'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
+        }, { 'REMOTE_ADDR' => '192.0.2.1' }
+        assert_equal(1, DB[:bans].count)
+      end
+    end
+    
+    it 'creates IPv6 /64 block bans from posts' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/bans/create/test/1/1', {
+          'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
+        }, { 'REMOTE_ADDR' => '2001:db8:1:1::1' }
+        assert_equal(1, DB[:bans].count)
+      end
+    end
+    
+    it 'creates a warning if the duration is zero' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/bans/create/test/1/1', {
+          'duration' => 0, 'reason' => 'test', 'csrf' => 'ok'
+        }
+        assert_equal(1, DB[:bans].count)
+      end
+    end
+    
+    it 'creates a permanent ban if duration < 0 or expires_on > MAX_BAN' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/bans/create/test/1/1', {
+          'duration' => -1, 'reason' => 'test', 'csrf' => 'ok'
+        }
+        assert_equal(1, DB[:bans].count)
+        assert_equal(BBS::MAX_BAN, DB[:bans].first[:expires_on])
+      end
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/bans/create/test/1/1', {
+          'duration' => Time.now.to_i, 'reason' => 'test', 'csrf' => 'ok'
+        }
+        assert_equal(1, DB[:bans].count)
+        assert_equal(BBS::MAX_BAN, DB[:bans].first[:expires_on])
+      end
+    end
+    
+    it 'requires a public reason' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/bans/create/test/1/1', {
+          'duration' => 24, 'reason' => '', 'csrf' => 'ok'
+        }
+        assert_equal(0, DB[:bans].count)
+        assert last_response.body.include?(t(:empty_ban_reason))
+      end
+    end
+    
+    it 'allows to edit existing active bans' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        reason = Time.now.to_s
+        ban_id = prepare_ban('192.0.2.1', 24)
+        post "/manage/bans/update/#{ban_id}", {
+          'duration' => 24, 'reason' => reason, 'csrf' => 'ok'
+        }
+        assert_equal(1, DB[:bans].count)
+        assert_equal(reason, DB[:bans].first[:reason])
+      end
+    end
+    
+    it 'forbids the modification of inactive bans' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        reason = Time.now.to_s
+        ban_id = prepare_ban('192.0.2.1', 24, false)
+        post "/manage/bans/update/#{ban_id}", {
+          'duration' => 24, 'reason' => reason, 'csrf' => 'ok'
+        }
+        refute_equal(reason, DB[:bans].first[:reason])
+        assert last_response.body.include?(t(:cannot_edit_expired_ban))
+      end
+    end
+  end
+  
+  describe '/banned' do
+    it 'shows when an IPv4 or an IPv6 /64 block is banned or warned' do
+      cases = [
+        ['192.0.2.1', 3600, '192.0.2.1', 'user-banned'],
+        ['192.0.2.1', 0, '192.0.2.1', 'user-warned'],
+        ['2001:db8:1:1::1', 3600, '2001:db8:1:1::2', 'user-banned'],
+        ['2001:db8:1:1::1', 0, '2001:db8:1:1::2', 'user-warned'],
+        ['192.0.2.1', 3600, '192.0.2.2', t(:not_banned)],
+        ['2001:db8:1:1::1', 3600, '2001:db8:1:2::1', t(:not_banned)],
+      ]
+      
+      cases.each do |p|
+        DB.transaction(:rollback => :always) do
+          prepare_ban(p[0], p[1])
+          get '/banned', {},  { 'REMOTE_ADDR' => p[2] }
+          assert last_response.body.include?(p[3]), "#{p[0]}/#{p[3]} failed"
+        end
+      end
+    end
+    
+    it 'handles ban expiration' do
+      DB.transaction(:rollback => :always) do
+        prepare_ban('192.0.2.1', -3600)
+        get '/banned', {},  { 'REMOTE_ADDR' => '192.0.2.1' }
+        assert_equal(false, DB[:bans].first[:active])
+      end
+    end
+  end
 end

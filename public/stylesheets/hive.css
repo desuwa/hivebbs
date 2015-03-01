@@ -537,29 +537,21 @@ input[type="checkbox"] {
   margin-bottom: 15px;
 }
 
-.ban-status {
-  display: block;
-  padding-bottom: 25px;
-  border-bottom: 3px solid rgba(0, 0, 0, 0.2);
-  margin-bottom: 25px;
-}
-
-.ban-post-head {
+.ban-head {
   color: #708090;
   margin-top: 20px;
 }
 
-.ban-post .post-comment,
-.ban-post .post-file {
-  margin-left: 0;
+.banned-status {
+  padding-bottom: 25px;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.2);
 }
 
-.ban-status:last-child {
+.banned-status:last-child {
   border: none;
 }
 
 .ban-reason {
-  font-style: italic;
   white-space: pre;
 }
 

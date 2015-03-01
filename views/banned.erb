@@ -3,33 +3,41 @@
 <head>
   <meta charset="utf-8">
   <%= erb :assets %>
-  <title><%= cfg(:app_name) %></title>
+  <title>Ban status</title>
 </head>
 <body>
 <div id="content">
 <ul id="nav">
-  <li><a href="/">Return</a></li>
+  <li><a href="/" title="Return to front page">Return</a></li>
 </ul>
-<div class="main">
+<% if @bans.empty? %>
+<h1><%= t(:not_banned) %></h1>
+<% else %>
 <% @bans.each do |ban| %>
-<div class="ban-status">
-  <h2 class="ban-head">You <%= ban[:duration] == 0 ? 'have been warned' : 'are banned' %></h2>
+<div class="section banned-status user-<%= ban[:duration] == 0 ? 'warned' : 'banned' %>">
+  <h2>You <%= ban[:duration] == 0 ? 'have been warned' : 'are banned' %></h2>
+  <div class="ban-head">Reason:</div>
   <div class="ban-reason"><%= ban[:reason] %></div>
+  <% if ban[:duration] >= 0 %>
+  <div class="ban-head">Expires on:</div>
+  <div class="ban-reason"><%= ban[:expires_on] == MAX_BAN ? 'Never' : Time.at(ban[:expires_on]).utc.strftime(t(:time_format)) %></div>
+  <% end %>
   <% if ban[:post]; post = JSON.parse(ban[:post], symbolize_names: true) %>
   <div class="ban-post">
-    <div class="ban-post-head">Your message was posted on /<%= post[:slug] %>/ and contained:</div>
+    <div class="ban-head">Your message was posted on /<%= post[:slug] %>/ and contained:</div>
     <% if post[:comment] %>
-    <div class="post-comment"><%= post[:comment] %></div>
+    <div class="ban-post-comment"><%= post[:comment] %></div>
     <% end %>
     <% if post[:file_hash];
     file_meta = JSON.parse(post[:meta], symbolize_names: true)[:file] %>
-    <div class="post-file"><a title="<% post[:file_hash] %>" href="#"><%= file_meta[:ext] %> <%= file_meta[:w] %>x<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %></a></div>
+    <div class="ban-head">File:</div>
+    <div class="ban-post-file"><%= file_meta[:ext] %> <%= file_meta[:w] %>x<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %> <%= post[:file_hash] %></div>
     <% end %>
   </div>
   <% end %>
 </div>
 <% end %>
-</div>
+<% end %>
 </div>
 </body>
 </html>
