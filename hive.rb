@@ -21,7 +21,7 @@ Encoding.default_external = 'UTF-8'
 module Hive
 
 class BBS < Sinatra::Base
-  VERSION = '0.4.1'
+  VERSION = '0.4.2'
   
   Dir.glob("#{settings.root}/helpers/*.rb").each { |f| require f }
   

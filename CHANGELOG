@@ -1,3 +1,7 @@
+0.4.2 - 2015-03-02
+  * Proper /banned page
+  * Fixed report queue manager for postgresql
+
 0.4.1 - 2015-02-26
   * Basic post reporting. Run rake db:migrate to update the database schema
   * The db:migrate task now accepts an argument to specify a config file:
