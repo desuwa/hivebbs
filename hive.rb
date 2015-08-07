@@ -14,6 +14,7 @@ require 'openssl'
 require 'resolv'
 require 'sequel'
 require 'sinatra/base'
+require 'tilt/erubis'
 require 'timeout'
 
 Encoding.default_external = 'UTF-8'
