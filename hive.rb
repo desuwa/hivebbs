@@ -68,7 +68,7 @@ class BBS < Sinatra::Base
     erb :index
   end
   
-  get %r{^/([0-9a-z]+)/$} do |slug|
+  get %r{^/([-_0-9a-z]+)/$} do |slug|
     @board = DB[:boards].where(:slug => slug).first
     
     halt 404 if !@board
@@ -83,7 +83,7 @@ class BBS < Sinatra::Base
     erb :board
   end
   
-  get %r{^/([0-9a-z]+)/read/([0-9]+)$} do |slug, num|
+  get %r{^/([-_0-9a-z]+)/read/([0-9]+)$} do |slug, num|
     @board = DB[:boards].first(:slug => slug)
     
     halt 404 if !@board
@@ -864,7 +864,7 @@ class BBS < Sinatra::Base
     title = params['title'].to_s
     config = params['config'].to_s
     
-    failure t(:bad_slug) unless /^[a-z0-9]+$/ =~ slug
+    failure t(:bad_slug) unless /\A[-_a-z0-9]+\z/ =~ slug
     failure t(:bad_title) if title.empty?
     
     if config.empty?
