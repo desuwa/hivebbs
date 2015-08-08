@@ -967,7 +967,7 @@ class BBS < Sinatra::Base
     username = params['username'].to_s
     level = params['level'].to_i
     
-    failure t(:bad_user_name) unless /^[_a-z0-9]+$/ =~ username
+    failure t(:bad_user_name) unless /\A[_a-z0-9]+\z/i =~ username
     failure t(:bad_user_level) unless USER_GROUPS[level]
     
     new_user = {
@@ -999,7 +999,30 @@ class BBS < Sinatra::Base
       success t(:done), '/manage/boards'
     end
   end
-  
+
+  post '/manage/users/delete/:id' do
+    validate_csrf_token
+    
+    forbidden unless user = get_user_session
+    forbidden unless user_has_level?(user, :admin)
+    
+    conf = params['confirm_keyword'].to_s
+    
+    if conf.empty? || conf != t(:confirm_keyword)
+      failure t(:bad_confirm_keyword)
+    end
+    
+    user_id = params[:id].to_i
+    
+    user = DB[:users].first(:id => user_id)
+    
+    failure t(:bad_user_id) unless user
+    
+    DB[:users].where(:id => user[:id]).delete
+    
+    success t(:done), '/manage/users'
+  end
+
   get '/manage/profile' do
     forbidden unless @user = get_user_session
     

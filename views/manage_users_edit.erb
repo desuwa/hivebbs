@@ -13,7 +13,7 @@
 <h1 id="title"><%= @user ? 'Edit' : 'Add' %> user</h1>
 <form class="form section" action="" method="post">
   <label>Username</label>
-  <input type="text" name="username" pattern="[_a-z0-9]+" required value="<%= @user[:username] if @user %>">
+  <input type="text" name="username" pattern="[-_a-z0-9]+" required value="<%= @user[:username] if @user %>">
   <label>Level</label>
   <select name="level">
     <option value="0">None</option>
@@ -22,9 +22,19 @@
     <% end %>
   </select>
   <% if @user %><label><input type="checkbox" name="reset_password">Reset password</label><% end %>
-  <input type="hidden" name="csrf" value="<%= request.cookies['csrf'] %>">
+  <%= csrf_tag(request.cookies['csrf']) %>
   <button type="submit">Submit</button>
 </form>
+<% if @user %>
+<div id="confirm-destroy">
+<h3>Delete this user</h3>
+<form action="/manage/users/delete/<%= @user[:id] %>" method="post">
+  <%= csrf_tag(request.cookies['csrf']) %>
+  <label>Type <%= t(:confirm_keyword) %> to confirm</label>
+  <input type="text" name="confirm_keyword" required><button type="submit">Delete</button>
+</form>
+</div>
+<% end %>
 </div>
 </body>
 </html>
