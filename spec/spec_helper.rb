@@ -96,9 +96,8 @@ class HiveSpec < MiniTest::Spec
     DIRS.each do |dir|
       path = BBS.settings.send(dir)
       
-      unless File.directory?(path)
-        FileUtils.mkdir_p(path)
-      end
+      FileUtils.rm_rf(path) if File.directory?(path)
+      FileUtils.mkdir_p(path)
     end
     
     self.reset_board_dir
@@ -116,7 +115,7 @@ class HiveSpec < MiniTest::Spec
         next if table == 'schema_info'
         DB.run("DELETE FROM #{table}")
       end
-      DB.run("DROP TABLE IF EXISTS sqlite_sequence")
+      #DB.run("DROP TABLE IF EXISTS sqlite_sequence")
     elsif DB.database_type == :postgres
       sql = "SELECT table_name FROM information_schema.tables " <<
             "WHERE table_schema='public'"

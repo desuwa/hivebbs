@@ -16,7 +16,7 @@ class HiveSpec < MiniTest::Spec
       ],
       :post => [
         '/boards/create', '/boards/update/1', '/boards/delete/1',
-        '/users/create', '/users/update/1'
+        '/users/create', '/users/update/1', '/users/delete/1'
       ]
     },
     :mod => {
@@ -127,6 +127,124 @@ class HiveSpec < MiniTest::Spec
         end
         
         assert last_response.body.include?('http-equiv="Refresh"')
+      end
+    end
+  end
+  
+  describe '/manage/users' do
+    it 'creates users' do
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/users/create', {
+          'username' => 'testuser',
+          'level' => BBS::USER_LEVELS[:mod],
+          'csrf' => 'ok'
+        }
+        assert DB[:users].first(:username => 'testuser') != nil
+      end
+    end
+    
+    it 'updates users' do
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        user_id = DB[:users].insert({
+          username: 'testupdateuser',
+          password: 'testdeluser',
+          level: BBS::USER_LEVELS[:mod],
+          created_on: Time.now.utc.to_i
+        })
+        
+        post "/manage/users/update/#{user_id}", {
+          'username' => 'testupdateuser2',
+          'level' => BBS::USER_LEVELS[:mod],
+          'csrf' => 'ok'
+        }
+        
+        assert DB[:users].first(:id => user_id)[:username] == 'testupdateuser2'
+      end
+    end
+    
+    it 'deletes users' do
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        user_id = DB[:users].insert({
+          username: 'testdeluser',
+          password: 'testdeluser',
+          level: BBS::USER_LEVELS[:mod],
+          created_on: Time.now.utc.to_i
+        })
+        
+        post "/manage/users/delete/#{user_id}", {
+          'confirm_keyword' => t(:confirm_keyword), 'csrf' => 'ok'
+        }
+        
+        assert_nil DB[:users].first(:id => user_id)
+      end
+    end
+  end
+  
+  describe  '/manage/boards' do
+    it 'creates boards' do
+      HiveSpec.reset_dirs
+      
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/boards/create', {
+          'slug' => 'test2', 'title' => 'Test', 'config' => '', 'csrf' => 'ok'
+        }
+        assert DB[:boards].first(:slug => 'test2') != nil
+      end
+    end
+    
+    it 'updates boards' do
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        board_id = DB[:boards].insert({
+          slug: 'test2',
+          title: 'Test',
+          config: '',
+          created_on: Time.now.utc.to_i
+        })
+        
+        post "/manage/boards/update/#{board_id}", {
+          'slug' => 'testing', 'title' => 'Test', 'config' => '', 'csrf' => 'ok'
+        }
+        
+        board = DB[:boards].first(:id => board_id)
+        
+        assert board != nil
+        assert board[:slug] == 'testing'
+      end
+    end
+  
+    it 'deletes boards' do
+      HiveSpec.reset_dirs
+      
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        board_id = DB[:boards].insert({
+          slug: 'test2',
+          title: 'Test',
+          config: '',
+          created_on: Time.now.utc.to_i
+        })
+        
+        board_dir = "#{app.settings.files_dir}/#{board_id}"
+        
+        FileUtils.mkdir(board_dir)
+        
+        post "/manage/boards/delete/#{board_id}", {
+          'confirm_keyword' => t(:confirm_keyword), 'csrf' => 'ok'
+        }
+        
+        assert_nil DB[:boards].first(:id => board_id)
+        assert File.directory?(board_dir) == false
       end
     end
   end
