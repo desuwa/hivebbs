@@ -984,7 +984,7 @@ class BBS < Sinatra::Base
     if action == 'update'
       user_id = user_id.to_i
       
-      affected = DB[:boards].where(:id => user_id).update(new_user)
+      affected = DB[:users].where(:id => user_id).update(new_user)
       
       failure t(:bad_user_id) unless affected > 0
     else
@@ -996,7 +996,7 @@ class BBS < Sinatra::Base
     if new_user[:password]
       success t(:new_passwd) % new_plain_pwd
     else
-      success t(:done), '/manage/boards'
+      success t(:done), '/manage/users'
     end
   end
 
