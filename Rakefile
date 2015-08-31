@@ -91,6 +91,28 @@ namespace :build do
   end
 end
 
+task :jshint do |t|
+  require 'jshintrb'
+  
+  opts = {
+    laxbreak: true,
+    boss: true,
+    expr: true,
+    sub: true
+  }
+  
+  root = 'public/javascripts'
+  
+  ['hive', 'tegaki', 'manage'].each do |basename|
+    f = "#{root}/#{basename}.js"
+    
+    next unless File.exist?(f)
+    
+    puts "--> #{root}/#{basename}.js"
+    puts Jshintrb.report(File.read(f), opts)
+  end
+end
+
 namespace :db do
   cfg = 'config/db.rb'
   
