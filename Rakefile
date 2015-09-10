@@ -91,6 +91,7 @@ namespace :build do
   end
 end
 
+desc 'Run JShint'
 task :jshint do |t|
   require 'jshintrb'
   
