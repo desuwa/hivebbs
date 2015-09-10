@@ -639,9 +639,12 @@ input[type="checkbox"] {
   font-family: 'Segoe UI', 'Helvetica Neue', Optima, Calibri, Arial, sans-serif;
 }
 
-
-@media (max-width: 480px) {
-#post-form table {
-  width: 100%;
-}
+@media screen and (max-width: 480px) {
+  #post-form table {
+    width: 100%;
+  }
+  
+  #content {
+    margin: 0 10px;
+  }
 }
