@@ -13,8 +13,8 @@ require 'net/https'
 require 'openssl'
 require 'resolv'
 require 'sequel'
-require 'sinatra/base'
 require 'tilt/erubis'
+require 'sinatra/base'
 require 'timeout'
 
 Encoding.default_external = 'UTF-8'
@@ -1073,7 +1073,7 @@ class BBS < Sinatra::Base
     failure 'Internal Server Error', 500
   end
   
-  run! if app_file == $0
+  run! if File.expand_path(app_file) == File.expand_path($0)
 end
 
 end
