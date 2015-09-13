@@ -154,7 +154,8 @@ File uploads are disabled by default. You need [ImageMagick](http://www.imagemag
 
 Gems:  
 `uglifier` to minify JavaScript  
-`sass` to minify CSS
+`sass` to minify CSS  
+`jshintrb` for JShint
 
 #### The End
 
