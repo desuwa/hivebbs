@@ -63,6 +63,16 @@ class BBS < Sinatra::Base
   
   ASSETS = {}
   
+  RACK_TEMPFILES = 'rack.tempfiles'.freeze
+  
+  after '/post' do
+    if env[RACK_TEMPFILES]
+      env[RACK_TEMPFILES].each do |tmp|
+        tmp.close! if tmp
+      end
+    end
+  end
+  
   get '/' do
     @boards = DB[:boards].all
     erb :index
