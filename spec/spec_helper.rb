@@ -1,6 +1,7 @@
 ENV['RACK_ENV'] = 'test'
 
 require_relative '../hive.rb'
+require 'minitest'
 require 'minitest/autorun'
 require 'rack/test'
 
