@@ -280,6 +280,7 @@ input {
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-bottom: 5px;
+  line-height: 1.3em;
 }
 
 header {
