@@ -48,8 +48,7 @@
       file_size: 5 * 1048576,
       dimensions: 2048,
       duration: 5 * 3600,
-      allow_audio: false,
-      allow_subs: true
+      allow_audio: false
     }
   },
   
