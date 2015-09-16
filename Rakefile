@@ -27,9 +27,8 @@ namespace :test do
     t.test_files = Dir['spec/*_spec.rb'].reject { |f| f.include?('magick') }
   end
   
-  TestTask.new(:cov) do |t|
-    t.description = 'Run test:all under SimpleCov'
-    
+  desc 'Run test:all under SimpleCov'
+  task :cov do |t|
     require 'simplecov'
     
     SimpleCov.start do
