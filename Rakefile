@@ -25,7 +25,20 @@ namespace :test do
   TestTask.new(:nomagick) do |t|
     t.description = 'Skip ImageMagick handler tests'
     t.test_files = Dir['spec/*_spec.rb'].reject { |f| f.include?('magick') }
-  end 
+  end
+  
+  TestTask.new(:cov) do |t|
+    t.description = 'Run test:all under SimpleCov'
+    
+    require 'simplecov'
+    
+    SimpleCov.start do
+      add_filter '/spec/'
+      command_name 'test:all'
+    end
+    
+    Rake::Task['test:all'].invoke
+  end
 end
 
 task :build => 'build:all'
