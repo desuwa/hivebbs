@@ -143,12 +143,12 @@ class BBS < Sinatra::Base
     is_new_thread = thread_num == 0
     
     if is_new_thread
-      throttle = now - cfg(:delay_thread)
+      throttle = now - cfg(:delay_thread, @board_cfg)
       
       last_post = DB[:posts].select(1).reverse_order(:id)
         .first('ip = ? AND num = 1 AND created_on > ?', request.ip, throttle)
     else
-      throttle = now - cfg(:delay_reply)
+      throttle = now - cfg(:delay_reply, @board_cfg)
       
       last_post = DB[:posts].select(1).reverse_order(:id)
         .first('ip = ? AND created_on > ?', request.ip, throttle)
@@ -269,7 +269,7 @@ class BBS < Sinatra::Base
         failure t(:bad_thread)
       end
       
-      if thread[:post_count] >= cfg(:post_limit)
+      if thread[:post_count] >= cfg(:post_limit, @board_cfg)
         failure t(:thread_full)
       end
     end
@@ -426,11 +426,11 @@ class BBS < Sinatra::Base
       FileUtils.rm_f(tmp_thumb_path) if tmp_thumb_path
     end
     
-    if is_new_thread && board[:thread_count] > cfg(:thread_limit)
+    if is_new_thread && board[:thread_count] > cfg(:thread_limit, @board_cfg)
       lt = DB[:threads]
         .where(:board_id => board[:id])
         .reverse_order(:updated_on)
-        .limit(1, cfg(:thread_limit) - 1)
+        .limit(1, cfg(:thread_limit, @board_cfg) - 1)
         .first
       
       if lt

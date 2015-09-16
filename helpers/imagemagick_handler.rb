@@ -3,7 +3,7 @@ module Hive
 class BBS < Sinatra::Base
   
   def process_file_imagemagick(file, dest)
-    limits = cfg(:file_limits)[:image]
+    limits = cfg(:file_limits, @board_cfg)[:image]
     
     if file.size > limits[:file_size]
       failure t(:file_size_too_big)
@@ -31,11 +31,11 @@ class BBS < Sinatra::Base
       image_format = 'jpg'
     end
     
-    if !cfg(:file_types).include?(image_format)
+    if !cfg(:file_types, @board_cfg).include?(image_format)
       failure t(:bad_file_format)
     end
     
-    thumb_dims = cfg(:thumb_dimensions)
+    thumb_dims = cfg(:thumb_dimensions, @board_cfg)
     
     th_width = image_width
     th_height = image_height

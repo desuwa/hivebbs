@@ -3,7 +3,7 @@ module Hive
 class BBS < Sinatra::Base
   
   def process_file_ffmpeg(file, dest)
-    limits = cfg(:file_limits)[:video]
+    limits = cfg(:file_limits, @board_cfg)[:video]
     
     if file.size > limits[:file_size]
       failure t(:file_size_too_big)
@@ -79,7 +79,7 @@ class BBS < Sinatra::Base
       failure t(:no_video_streams)
     end
     
-    thumb_dims = cfg(:thumb_dimensions)
+    thumb_dims = cfg(:thumb_dimensions, @board_cfg)
     
     if sar
       if sar > 1.0

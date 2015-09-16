@@ -7,7 +7,7 @@ class BBS < Sinatra::Base
   end
   
   def cfg(id, board_cfg = nil)
-    if board_cfg && board_cfg.has_key?(id)
+    if board_cfg && board_cfg[id]
       board_cfg[id]
     else
       CONFIG[id]
