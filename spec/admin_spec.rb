@@ -25,7 +25,7 @@ class HiveSpec < MiniTest::Spec
       ],
       :post => [
         '/bans/create/test/1/1', '/boards/update/1',
-        '/posts/delete', '/reports/delete'
+        '/posts/delete', '/reports/delete', '/threads/flags'
       ]
     }
   }
