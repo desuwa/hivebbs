@@ -19,6 +19,7 @@
   fast_post: 'You have to wait a while before making another post.',
   honeypot: 'Do not fill in this field.',
   thread_full: 'Reply limit reached.',
+  thread_locked: 'This thread is locked.',
   cmd_forbidden: 'You cannot use this command.',
   captcha_generic_error: "Couldn't verify the captcha.",
   captcha_invalid_error: 'You seem to have mistyped the captcha.',
@@ -68,8 +69,8 @@
   passwd_mismatch: 'Password doesn\'t match the confirmation.',
   
   invalid_ip: 'Invalid IP address.',
-  invalid_ban_id: 'Invalid ban id',
-  cannot_edit_expired_ban: 'You cannot edit expired bans',
+  invalid_ban_id: 'Invalid ban id.',
+  cannot_edit_expired_ban: 'You cannot edit expired bans.',
   empty_ban_reason: 'Ban reason cannot be empty.',
   
   not_banned: 'You are not banned.',

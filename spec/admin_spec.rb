@@ -530,4 +530,59 @@ class HiveSpec < MiniTest::Spec
       end
     end
   end
+  
+  describe 'Thread pinning' do
+    it 'can pin threads to the top of the list' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/threads/flags', {
+          'board' => 'test',
+          'thread' => '1',
+          'flag' => 'pinned',
+          'value' => '1',
+          'csrf' => 'ok'
+        }
+        
+        assert last_response.body.include?(t(:done)), last_response.body
+        assert_equal 1, DB[:threads].first(:id => 1)[:pinned]
+      end
+    end
+    
+    it 'respects pinning order' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        title_bottom = 'BottomPin'
+        title_top = 'TopPin'
+        
+        insert_thread(board_id: 1, title: title_bottom, pinned: 1)
+        insert_thread(board_id: 1, title: title_top, pinned: 2)
+        
+        get '/test/'
+        body = last_response.body
+        
+        assert body.index(title_top) < body.index(title_bottom)
+      end
+    end
+  end
+  
+  describe 'Thread locking' do
+    it 'makes threads unable to receive new replies' do
+      sid_as('mod')
+      
+      DB.transaction(:rollback => :always) do
+        post '/manage/threads/flags', {
+          'board' => 'test',
+          'thread' => '1',
+          'flag' => 'locked',
+          'value' => BBS::THREAD_LOCKED,
+          'csrf' => 'ok'
+        }
+        
+        assert last_response.body.include?(t(:done)), last_response.body
+        assert_equal BBS::THREAD_LOCKED, DB[:threads].first(:id => 1)[:locked]
+      end
+    end
+  end
 end

@@ -48,6 +48,8 @@ end
 </div><span id="bottom"></span>
 <% if @thread[:post_count] >= cfg(:post_limit) %>
 <h3><%= t(:thread_full) %></h3>
+<% elsif @thread[:locked] > 0 %>
+<h3><%= t(:thread_locked) %></h3>
 <% else @_out_buf << (erb :form) end %>
 </div>
 <%= erb :footer %>

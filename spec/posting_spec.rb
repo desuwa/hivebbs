@@ -126,6 +126,14 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
+    it "doesn't allow to reply to locked threads" do
+      DB.transaction(:rollback => :always) do
+        DB[:threads].where(:id => 1).update({ :locked => BBS::THREAD_LOCKED })
+        make_post({ 'thread' => '1', 'comment' => 'test' })
+        refute last_response.body.include?('http-equiv="Refresh"')
+      end
+    end
+    
     it 'prunes inactive threads when a new thread is made' do
       CONFIG[:thread_limit] = 1
       DB.transaction(:rollback => :always) do

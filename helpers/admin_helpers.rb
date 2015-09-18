@@ -11,6 +11,8 @@ class BBS < Sinatra::Base
   
   USER_GROUPS = USER_LEVELS.invert
   
+  THREAD_LOCKED = 1
+  
   def resolve_name(ip)
     Resolv.getname(ip)
   rescue Resolv::ResolvError, Resolv::ResolvTimeout

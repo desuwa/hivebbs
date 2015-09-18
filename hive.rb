@@ -84,7 +84,7 @@ class BBS < Sinatra::Base
     halt 404 if !@board
     
     @threads = DB[:threads]
-      .reverse_order(:updated_on)
+      .reverse_order(:pinned, :updated_on)
       .where(:board_id => @board[:id])
       .all
     
@@ -267,6 +267,10 @@ class BBS < Sinatra::Base
       
       if !thread
         failure t(:bad_thread)
+      end
+      
+      if thread[:locked] > 0
+        failure t(:thread_locked)
       end
       
       if thread[:post_count] >= cfg(:post_limit, @board_cfg)
@@ -549,6 +553,36 @@ class BBS < Sinatra::Base
       
       delete_replies([post], file_only)
     end
+    
+    success t(:done), "#{board[:slug]}/read/#{thread[:num]}"
+  end
+  
+  post '/manage/threads/flags' do
+    validate_csrf_token
+    
+    forbidden unless user = get_user_session
+    forbidden unless user_has_level?(user, :mod)
+    
+    slug = params['board'].to_s
+    thread_num = params['thread'].to_i
+    flag = params['flag'].to_s
+    value = params['value'].to_i
+    
+    if slug.empty? || thread_num.zero? || flag.empty?
+      bad_request
+    end
+    
+    if !['pinned', 'locked'].include?(flag) || value < 0
+      bad_request
+    end
+    
+    board = DB[:boards].first(:slug => slug)
+    failure t(:bad_board) unless board
+    
+    thread = DB[:threads].first(:board_id => board[:id], :num => thread_num)
+    failure t(:bad_thread) unless thread
+    
+    DB[:threads].where(:id => thread[:id]).update({ flag.to_sym => value })
     
     success t(:done), "#{board[:slug]}/read/#{thread[:num]}"
   end

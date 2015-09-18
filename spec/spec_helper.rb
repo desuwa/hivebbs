@@ -48,6 +48,32 @@ class HiveSpec < MiniTest::Spec
     post '/post', fields, rack_env
   end
   
+  def insert_thread(opts = {})
+    num = DB[:threads].max(:num).to_i + 1
+    
+    now = Time.now.utc.to_i
+    
+    tid = DB[:threads].insert({
+      board_id: 1,
+      num: num,
+      title: "Test #{num}",
+      created_on: now,
+      updated_on: now,
+      post_count: 1
+    }.merge(opts))
+    
+    DB[:posts].insert({
+      board_id: opts[:board_id] || 1,
+      thread_id: num,
+      num: 1,
+      created_on: now,
+      ip: '127.0.0.1',
+      comment: "Test #{num}"
+    })
+    
+    return tid
+  end
+  
   def prepare_ban(ip_str, seconds = nil, active = true)
     now = Time.now.utc.to_i
     
