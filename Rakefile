@@ -209,6 +209,11 @@ namespace :puma do
   
   desc 'Stop Puma'
   task :stop do |t|
+    system('pumactl -F puma-hive.rb stop')
+  end
+  
+  desc 'Immediately stop Puma'
+  task :halt do |t|
     system('pumactl -F puma-hive.rb halt')
   end
 end
