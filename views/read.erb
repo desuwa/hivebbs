@@ -5,7 +5,7 @@
   <%= erb :assets %>
   <title>/<%= @board[:slug] %>/ - <%= @thread[:title] %></title>
 </head>
-<body>
+<body data-page="read">
 <div id="content">
 <ul id="nav">
   <li><a href="/<%= @board[:slug] %>/" title="Return to /<%= @board[:slug] %>/">Return</a></li>

@@ -1,155 +1,3 @@
-/**
- * quick and dirty proto
- */
-$ = {
-  docEl: document.documentElement,
-  
-  id: function(id) {
-    return document.getElementById(id);
-  },
-  
-  cls: function(klass, root) {
-    return (root || document).getElementsByClassName(klass);
-  },
-  
-  tag:  function(tag, root) {
-    return (root || document).getElementsByTagName(tag);
-  },
-  
-  qs: function(selector, root) {
-    return (root || document).querySelector(selector);
-  },
-
-  qsa: function(selector, root) {
-    return (root || document).querySelectorAll(selector);
-  },
-  
-  on: function(o, e, h) {
-    o.addEventListener(e, h, false);
-  },
-  
-  off: function(o, e, h) {
-    o.removeEventListener(e, h, false);
-  },
-  
-  xhr: function(method, url, attrs, data, headers) {
-    var h, key, xhr, form;
-    
-    xhr = new XMLHttpRequest();
-    
-    xhr.open(method, url, true);
-    
-    if (attrs) {
-      for (key in attrs) {
-        xhr[key] = attrs[key];
-      }
-    }
-    
-    if (headers) {
-      for (h in headers) {
-        xhr.setRequestHeader(h, headers[h]);
-      }
-    }
-    
-    if (data) {
-      if (data.constructor === Object) {
-        form = new FormData();
-        
-        for (key in data) {
-          form.append(key, data[key]);
-        }
-        
-        data = form;
-      }
-    }
-    else {
-      data = null
-    }
-    
-    xhr.send(data);
-    
-    return xhr;
-  },
-  
-  el: function(name) {
-    return document.createElement(name);
-  },
-  
-  frag: function() {
-    return document.createDocumentFragment();
-  },
-  
-  getItem: function(key) {
-    return localStorage.getItem(key);
-  },
-  
-  setItem: function(key, value) {
-    return localStorage.setItem(key, value);
-  },
-  
-  removeItem: function(key) {
-    return localStorage.removeItem(key);
-  },
-  
-  getCookie: function(name) {
-    var i, c, ca, key;
-    
-    key = name + '=';
-    ca = document.cookie.split(';');
-    
-    for (i = 0; c = ca[i]; ++i) {
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1, c.length);
-      }
-      if (c.indexOf(key) == 0) {
-        return decodeURIComponent(c.substring(key.length, c.length));
-      }
-    }
-    
-    return null;
-  },
-  
-  setCookie: function(name, value, days, path, domain) {
-    var date, vars = [];
-    
-    vars.push(name + '=' + value);
-    
-    if (days) {
-      date = new Date();
-      date = date.setTime(date.getTime() + (days * 86400000)).toGMTString();
-      vars.push('expire=' + date);
-    }
-    
-    if (path) {
-      vars.push('path=' + domain)
-    }
-    
-    if (domain) {
-      vars.push('domain=' + domain)
-    }
-    
-    document.cookie = vars.join('; ');
-  },
-  
-  removeCookie: function(name, path, domain) {
-    var vars = [];
-    
-    vars.push(name + '=');
-    
-    vars.push('expires=Thu, 01 Jan 1970 00:00:01 GMT');
-    
-    if (path) {
-      vars.push('path=' + domain)
-    }
-    
-    if (domain) {
-      vars.push('domain=' + domain)
-    }
-    
-    document.cookie = vars.join('; ');
-  }
-};
-
 var QuotePreviews = {
   frozen: false,
   
@@ -234,7 +82,7 @@ var QuotePreviews = {
   },
   
   detach: function(t) {
-    var i, t, el, nodes, root;
+    var i, el, nodes, root;
     
     root = $.docEl;
     
@@ -262,23 +110,13 @@ var QuotePreviews = {
   }
 };
 
-var Report = {
-  run: function() {
-    if ($.id('captcha-cnt')) {
-      Hive.loadReCaptcha();
-    }
-  }
-};
-
 var Hive = {
-  clickCommands: null,
+  xhr: {},
   
   init: function() {
     $.on(document, 'DOMContentLoaded', Hive.run);
     
-    Hive.xhr = {};
-    
-    Hive.clickCommands = {
+    ClickHandler.commands = {
       'q': Hive.onPostNumClick,
       'fexp': Hive.onFileClick,
       'fcon': Hive.closeGallery,
@@ -286,40 +124,30 @@ var Hive = {
       'captcha': Hive.onDisplayCaptchaClick,
       'tegaki': Hive.onTegakiClick,
       'post-menu': Hive.onReportClick,
+      'delete-post': Hive.onDeletePostClick
     };
     
-    $.on(document, 'click', Hive.onClick);
-    
+    ClickHandler.init();
     QuotePreviews.init();
   },
   
   run: function() {
+    var page;
+    
     $.off(document, 'DOMContentLoaded', Hive.run);
     
-    // fixme
-    if (/^\/report\//.test(location.pathname)) {
-      Report.run();
-      return;
+    page = document.body.getAttribute('data-page');
+    
+    if (page === 'read') {
+      if ($.getCookie('csrf')) {
+        Hive.addManagerControls();
+      }
+    }
+    else if (page === 'report') {
+      Hive.loadReCaptcha();
     }
     
     window.prettyPrint && window.prettyPrint();
-  },
-  
-  onClick: function(e) {
-    var t, cmd, cb;
-    
-    t = e.target;
-    
-    if (t === document) {
-      return;
-    }
-    
-    cmd = t.getAttribute('data-cmd');
-    
-    if (cmd && e.which === 1 && (cb = Hive.clickCommands[cmd])) {
-      e.preventDefault();
-      cb(t);
-    }
   },
   
   onReportClick: function(t) {
@@ -425,7 +253,7 @@ var Hive = {
   },
   
   onFileClick: function(t) {
-    var t, bg, el, href;
+    var bg, el, href;
     
     bg = $.el('div');
     bg.id = 'backdrop';
@@ -478,7 +306,7 @@ var Hive = {
   },
   
   showMarkupPreview: function(t) {
-    var el, com, data;
+    var el, com;
     
     Hive.abortXhr('markup');
     
@@ -489,12 +317,14 @@ var Hive = {
     t.setAttribute('data-active', '1');
     t.textContent = 'Loading…';
     
-    data = new FormData();
-    data.append('comment', com.value);
-    
-    Hive.xhr.markup = $.xhr('POST', '/markup', {
-      onload: Hive.onMarkupLoaded
-    }, data);
+    Hive.xhr.markup = $.xhr('POST', '/markup',
+      {
+        onload: Hive.onMarkupLoaded
+      },
+      {
+        comment: com.value
+      }
+    );
   },
   
   onMarkupLoaded: function() {
@@ -579,6 +409,95 @@ var Hive = {
     }
     
     com.focus();
+  },
+  
+  onPostDeleted: function() {
+    var el = $.id(this.hivePostId);
+    el && el.classList.add('disabled');
+  },
+  
+  deletePost: function(id, slug, thread, post, file_only) {
+    var params;
+    
+    params = [];
+    params.push('board=' + slug);
+    params.push('thread=' + thread);
+    params.push('post=' + post);
+    params.push('csrf=' + $.getCookie('csrf'));
+    
+    if (file_only) {
+      params.push('file_only=1');
+    }
+    
+    $.xhr('POST', '/manage/posts/delete',
+      {
+        onload: Hive.onPostDeleted,
+        hivePostId: id
+      },
+      params.join('&')
+    );
+  },
+  
+  onDeletePostClick: function(t) {
+    var el, path, slug, thread, post, file_only;
+    
+    el = $.postIdFromNode(t);
+    
+    if (!el) {
+      return;
+    }
+    
+    file_only = t.hasAttribute('data-delfile');
+    
+    path = el.id.split('-');
+    
+    if (path.length < 3) {
+      post = path.pop();
+      path = location.pathname.split('/');
+      slug = path[1];
+      thread = path[3];
+    }
+    else {
+      post = path.pop();
+      thread = path.pop();
+      slug = path.pop();
+    }
+    
+    Hive.deletePost(el.id, slug, thread, post, file_only);
+  },
+  
+  addManagerControls: function() {
+    var i, cnt, el, nodes, ctrl, path, post;
+    
+    path = location.pathname.split('/');
+    path = '/manage/bans/create/' + path[1] + '/' + path[3] + '/';
+    
+    nodes = $.cls('post-head');
+    
+    for (i = 0; el = nodes[i]; ++i) {
+      cnt = $.el('span');
+      cnt.className = 'manage-ctrl';
+      
+      ctrl = $.el('a');
+      ctrl.setAttribute('data-cmd', 'delete-post');
+      ctrl.textContent = 'del';
+      cnt.appendChild(ctrl);
+      
+      ctrl = $.el('a');
+      ctrl.setAttribute('data-cmd', 'delete-post');
+      ctrl.setAttribute('data-delfile', '1');
+      ctrl.textContent = 'delfile';
+      cnt.appendChild(ctrl);
+      
+      post = el.parentNode.id.split('-').pop();
+      ctrl = $.el('a');
+      ctrl.setAttribute('target', '_blank');
+      ctrl.href = path + post;
+      ctrl.textContent = 'ban';
+      cnt.appendChild(ctrl);
+      
+      el.appendChild(cnt);
+    }
   }
 };
 

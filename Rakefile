@@ -43,6 +43,31 @@ end
 task :build => 'build:all'
 
 namespace :build do
+  desc 'Remove minified and precompressed files'
+  task :clean do
+    root = 'public/js'
+    ['core', 'hive', 'tegaki', 'manage/reports'].each do |basename|
+      ['.js', '.js.map', '.js.gz'].each do |suf|
+        src = "#{root}/#{basename}.min#{suf}"
+        if File.exist?(src)
+          puts "Removing #{src}"
+          FileUtils.rm(src)
+        end
+      end
+    end
+    
+    root = 'public/css'
+    ['hive', 'tegaki'].each do |basename|
+      ['.css', '.css.gz'].each do |suf|
+        src = "#{root}/#{basename}.min#{suf}"
+        if File.exist?(src)
+          puts "Removing #{src}"
+          FileUtils.rm(src)
+        end
+      end
+    end 
+  end
+  
   desc 'Minify and precompress everything'
   task :all do
     Rake::Task['build:js'].invoke
@@ -54,9 +79,11 @@ namespace :build do
     require 'zlib'
     require 'uglifier'
     
-    root = 'public/javascripts'
-    ['hive', 'tegaki', 'manage'].each do |basename|
+    root = 'public/js'
+    ['core', 'hive', 'tegaki', 'manage/reports'].each do |basename|
       next unless File.exist?("#{root}/#{basename}.js")
+      
+      puts "Building #{basename}.js"
       
       u = Uglifier.new(
         screw_ie8: true,
@@ -82,10 +109,12 @@ namespace :build do
     require 'zlib'
     require 'sass'
     
-    root = 'public/stylesheets'
+    root = 'public/css'
     
     ['hive', 'tegaki'].each do |basename|
       next unless File.exist?("#{root}/#{basename}.css")
+      
+      puts "Building #{basename}.css"
       
       sass = Sass::Engine.new(
         File.read("#{root}/#{basename}.css"),
@@ -114,9 +143,9 @@ task :jshint do |t|
     sub: true
   }
   
-  root = 'public/javascripts'
+  root = 'public/js'
   
-  ['hive', 'tegaki', 'manage'].each do |basename|
+  ['core', 'hive', 'manage/reports'].each do |basename|
     f = "#{root}/#{basename}.js"
     
     next unless File.exist?(f)

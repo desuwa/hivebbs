@@ -2,7 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <%= erb :assets %>
+  <%= erb :manage_assets %>
+  <script src="<%= asset('/js/hive.js'.freeze) %>"></script>
+  <script src="<%= asset('/js/manage/reports.js'.freeze) %>"></script>
   <title>Reports</title>
 </head>
 <body>

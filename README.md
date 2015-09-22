@@ -153,7 +153,7 @@ File uploads are disabled by default. You need [ImageMagick](http://www.imagemag
 #### Additional dependencies
 
 Gems:  
-`uglifier` to minify JavaScript  
+`uglifier` to minify JavaScript (see [ExecJS](https://github.com/sstephenson/execjs) for a JavaScript runtime)  
 `sass` to minify CSS  
 `jshintrb` for JShint
 

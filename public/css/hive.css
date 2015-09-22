@@ -640,6 +640,21 @@ input[type="checkbox"] {
   font-family: 'Segoe UI', 'Helvetica Neue', Optima, Calibri, Arial, sans-serif;
 }
 
+#tooltip {
+  font-family: 'Helvetica Neue', arial, sans-serif;
+  position: absolute;
+  background-color: #181f24;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 5px 8px 4px 8px;
+  z-index: 100000;
+  word-wrap: break-word;
+  white-space: pre-line;
+  max-width: 400px;
+  color: #dedede;
+  text-align: center;
+}
+
 @media screen and (max-width: 480px) {
   #post-form table {
     width: 100%;
