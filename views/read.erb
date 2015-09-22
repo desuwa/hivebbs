@@ -5,7 +5,7 @@
   <%= erb :assets %>
   <title>/<%= @board[:slug] %>/ - <%= @thread[:title] %></title>
 </head>
-<body data-page="read">
+<body data-page="read" data-board="<%= @board[:slug] %>" data-thread="<%= @thread[:num] %>"<% if @thread[:locked] > 0 %> data-locked<% end %><% if @thread[:pinned] > 0 %> data-pinned="<%= @thread[:pinned] %>"<% end %>>
 <div id="content">
 <ul id="nav">
   <li><a href="/<%= @board[:slug] %>/" title="Return to /<%= @board[:slug] %>/">Return</a></li>

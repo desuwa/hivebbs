@@ -123,8 +123,10 @@ var Hive = {
       'markup': Hive.onMarkupClick,
       'captcha': Hive.onDisplayCaptchaClick,
       'tegaki': Hive.onTegakiClick,
-      'post-menu': Hive.onReportClick,
-      'delete-post': Hive.onDeletePostClick
+      'post-menu': Hive.onReportClick, // do the actual post menu some day
+      'delete-post': Hive.onDeletePostClick,
+      'pin-thread': Hive.onPinThreadClick,
+      'lock-thread': Hive.onLockThreadClick
     };
     
     ClickHandler.init();
@@ -466,35 +468,125 @@ var Hive = {
     Hive.deletePost(el.id, slug, thread, post, file_only);
   },
   
-  addManagerControls: function() {
-    var i, cnt, el, nodes, ctrl, path, post;
+  onLockThreadClick: function(btn) {
+    var board, thread, params, value;
     
+    board = document.body.getAttribute('data-board');
+    thread = document.body.getAttribute('data-thread');
+    value = +!document.body.hasAttribute('data-locked');
+    
+    params = [
+      'board=' + board,
+      'thread=' + thread,
+      'flag=locked',
+      'value=' + value,
+      'csrf=' + $.getCookie('csrf')
+    ];
+    
+    $.xhr('POST', '/manage/threads/flags',
+      {
+        onload: Hive.onLockThreadLoaded
+      },
+      params.join('&')
+    );
+  },
+  
+  onLockThreadLoaded: function() {
+    if (document.body.hasAttribute('data-locked')) {
+      document.body.removeAttribute('data-locked');
+    }
+    else {
+      document.body.setAttribute('data-locked', '1');
+    }
+  },
+  
+  onPinThreadClick: function(btn) {
+    var board, thread, params, value, current_value;
+    
+    board = document.body.getAttribute('data-board');
+    thread = document.body.getAttribute('data-thread');
+    current_value = +document.body.getAttribute('data-pinned') || 1;
+    
+    value = prompt('Order (0 to unpin)', current_value);
+    
+    if (value === null) {
+      return;
+    }
+    
+    params = [
+      'board=' + board,
+      'thread=' + thread,
+      'flag=pinned',
+      'value=' + value,
+      'csrf=' + $.getCookie('csrf')
+    ];
+    
+    $.xhr('POST', '/manage/threads/flags',
+      {
+        onload: Hive.onPinThreadLoaded,
+        hiveValue: value
+      },
+      params.join('&')
+    );
+  },
+  
+  onPinThreadLoaded: function() {
+    if (this.hiveValue === 0) {
+      document.body.removeAttribute('data-pinned');
+    }
+    else {
+      document.body.setAttribute('data-pinned', this.hiveValue);
+    }
+  },
+  
+  addManagerControls: function() {
+    var i, cnt, el, nodes, ctrl, path, post_id;
+    
+    // fixme
     path = location.pathname.split('/');
     path = '/manage/bans/create/' + path[1] + '/' + path[3] + '/';
     
     nodes = $.cls('post-head');
     
     for (i = 0; el = nodes[i]; ++i) {
+      post_id = el.parentNode.id.split('-').pop();
+      
       cnt = $.el('span');
       cnt.className = 'manage-ctrl';
       
       ctrl = $.el('a');
       ctrl.setAttribute('data-cmd', 'delete-post');
-      ctrl.textContent = 'del';
+      ctrl.setAttribute('data-tip', 'Delete');
+      ctrl.textContent = 'D';
       cnt.appendChild(ctrl);
       
       ctrl = $.el('a');
       ctrl.setAttribute('data-cmd', 'delete-post');
       ctrl.setAttribute('data-delfile', '1');
-      ctrl.textContent = 'delfile';
+      ctrl.setAttribute('data-tip', 'Delete file');
+      ctrl.textContent = 'Df';
       cnt.appendChild(ctrl);
       
-      post = el.parentNode.id.split('-').pop();
       ctrl = $.el('a');
       ctrl.setAttribute('target', '_blank');
-      ctrl.href = path + post;
-      ctrl.textContent = 'ban';
+      ctrl.setAttribute('data-tip', 'Ban');
+      ctrl.href = path + post_id;
+      ctrl.textContent = 'B';
       cnt.appendChild(ctrl);
+      
+      if (post_id === '1') {
+        ctrl = $.el('a');
+        ctrl.setAttribute('data-cmd', 'pin-thread');
+        ctrl.setAttribute('data-tip', 'Pin thread');
+        ctrl.textContent = 'P';
+        cnt.appendChild(ctrl);
+        
+        ctrl = $.el('a');
+        ctrl.setAttribute('data-cmd', 'lock-thread');
+        ctrl.setAttribute('data-tip', 'Lock thread');
+        ctrl.textContent = 'L';
+        cnt.appendChild(ctrl);
+     }
       
       el.appendChild(cnt);
     }

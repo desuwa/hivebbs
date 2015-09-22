@@ -262,8 +262,12 @@ input {
   opacity: 1;
 }
 
+.manage-ctrl {
+  font-size: 12px;
+}
+
 .manage-ctrl a {
-  margin-left: 5px;
+  margin-left: 8px;
 }
 
 #threads {
@@ -634,6 +638,8 @@ input[type="checkbox"] {
   text-transform: uppercase;
 }
 
+#tooltip,
+.manage-ctrl,
 .post-report-score,
 .post-report-ctrl a,
 .post-report-ctrl .link-span {
@@ -641,7 +647,6 @@ input[type="checkbox"] {
 }
 
 #tooltip {
-  font-family: 'Helvetica Neue', arial, sans-serif;
   position: absolute;
   background-color: #181f24;
   border-radius: 3px;
