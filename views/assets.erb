@@ -1,7 +1,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="<%= asset('/css/hive.css'.freeze) %>">
-  <script src="<%= asset('/js/core.js'.freeze) %>"></script>
-  <script src="<%= asset('/js/hive.js'.freeze) %>"></script>
-  <% if cfg(:tegaki, @board_cfg) %><script src="<%= asset('/js/tegaki.js'.freeze) %>"></script>
-  <link rel="stylesheet" href="<%= asset('/css/tegaki.css'.freeze) %>">
-  <% end %>
+  <script defer src="<%= asset('/js/core.js'.freeze) %>"></script>
+  <script defer src="<%= asset('/js/hive.js'.freeze) %>"></script>
+  <% if cfg(:tegaki, @board_cfg) %><script defer src="<%= asset('/js/tegaki.js'.freeze) %>"></script>
+  <link rel="stylesheet" href="<%= asset('/css/tegaki.css'.freeze) %>"><% end %>
