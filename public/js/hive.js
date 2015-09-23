@@ -560,12 +560,14 @@ var Hive = {
       ctrl.textContent = 'D';
       cnt.appendChild(ctrl);
       
-      ctrl = $.el('a');
-      ctrl.setAttribute('data-cmd', 'delete-post');
-      ctrl.setAttribute('data-delfile', '1');
-      ctrl.setAttribute('data-tip', 'Delete file');
-      ctrl.textContent = 'Df';
-      cnt.appendChild(ctrl);
+      if ($.cls('post-file-thumb', el.parentNode)[0]) {
+        ctrl = $.el('a');
+        ctrl.setAttribute('data-cmd', 'delete-post');
+        ctrl.setAttribute('data-delfile', '1');
+        ctrl.setAttribute('data-tip', 'Delete file');
+        ctrl.textContent = 'Df';
+        cnt.appendChild(ctrl);
+      }
       
       ctrl = $.el('a');
       ctrl.setAttribute('target', '_blank');
