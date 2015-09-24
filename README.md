@@ -100,7 +100,7 @@ At this point you should be able to start HiveBBS in development mode:
 
 `./hive.rb`
 
-It will be available at `http://127.0.0.1:4567`
+It will be available at `http://localhost:4567`
 
 The manager (admin) route is `/manage`
 
