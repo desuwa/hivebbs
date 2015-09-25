@@ -23,7 +23,7 @@ var QuotePreviews = {
       }
     }
     
-    if (document.body.classList.contains('has-backdrop')) {
+    if ($.body.classList.contains('has-backdrop') || PostMenu.node) {
       QuotePreviews.frozen = true;
       return;
     }
@@ -65,7 +65,7 @@ var QuotePreviews = {
     
     aabb = t.getBoundingClientRect();
     
-    document.body.appendChild(cnt);
+    $.body.appendChild(cnt);
     
     if (aabb.right / $.docEl.clientWidth > 0.7) {
       s.maxWidth = (aabb.left - 20) + 'px';
@@ -103,7 +103,7 @@ var QuotePreviews = {
         break;
       }
       
-      document.body.removeChild(el);
+      $.body.removeChild(el);
     }
     
     QuotePreviews.hasPreviews = !!nodes[0];
@@ -111,8 +111,8 @@ var QuotePreviews = {
 };
 
 var PostMenu = {
+  btn: null,
   node: null,
-  
   items: [],
   
   init: function(items) {
@@ -129,6 +129,10 @@ var PostMenu = {
     
     if (PostMenu.node) {
       PostMenu.close();
+      
+      if (PostMenu.btn === btn) {
+        return;
+      }
     }
     
     items = PostMenu.items;
@@ -152,6 +156,7 @@ var PostMenu = {
     }
     
     PostMenu.node = cnt;
+    PostMenu.btn = btn;
     
     $.on(document, 'click', PostMenu.close);
     
@@ -386,17 +391,17 @@ var Hive = {
     
     bg.insertBefore(el, bg.firstElementChild);
     
-    document.body.classList.add('has-backdrop');
+    $.body.classList.add('has-backdrop');
     
-    document.body.appendChild(bg);
+    $.body.appendChild(bg);
   },
   
   closeGallery: function() {
     var el;
     
     if (el = $.id('backdrop')) {
-      document.body.removeChild(el);
-      document.body.classList.remove('has-backdrop');
+      $.body.removeChild(el);
+      $.body.classList.remove('has-backdrop');
     }
   },
   
@@ -556,9 +561,9 @@ var Hive = {
   onLockThreadClick: function(btn) {
     var board, thread, params, value;
     
-    board = document.body.getAttribute('data-board');
-    thread = document.body.getAttribute('data-thread');
-    value = +!document.body.hasAttribute('data-locked');
+    board = $.body.getAttribute('data-board');
+    thread = $.body.getAttribute('data-thread');
+    value = +!$.body.hasAttribute('data-locked');
     
     params = [
       'board=' + board,
@@ -577,20 +582,20 @@ var Hive = {
   },
   
   onLockThreadLoaded: function() {
-    if (document.body.hasAttribute('data-locked')) {
-      document.body.removeAttribute('data-locked');
+    if ($.body.hasAttribute('data-locked')) {
+      $.body.removeAttribute('data-locked');
     }
     else {
-      document.body.setAttribute('data-locked', '1');
+      $.body.setAttribute('data-locked', '1');
     }
   },
   
   onPinThreadClick: function(btn) {
     var board, thread, params, value, current_value;
     
-    board = document.body.getAttribute('data-board');
-    thread = document.body.getAttribute('data-thread');
-    current_value = +document.body.getAttribute('data-pinned') || 1;
+    board = $.body.getAttribute('data-board');
+    thread = $.body.getAttribute('data-thread');
+    current_value = +$.body.getAttribute('data-pinned') || 1;
     
     value = prompt('Order (0 to unpin)', current_value);
     
@@ -617,10 +622,10 @@ var Hive = {
   
   onPinThreadLoaded: function() {
     if (this.hiveValue === 0) {
-      document.body.removeAttribute('data-pinned');
+      $.body.removeAttribute('data-pinned');
     }
     else {
-      document.body.setAttribute('data-pinned', this.hiveValue);
+      $.body.setAttribute('data-pinned', this.hiveValue);
     }
   },
   

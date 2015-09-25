@@ -229,7 +229,7 @@ input {
 }
 
 #post-menu li {
-  padding: 2px 0;
+  line-height: 18px;
 }
 
 .post-comment p { margin-bottom: 15px; }
