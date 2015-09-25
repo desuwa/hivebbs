@@ -1,6 +1,8 @@
 var $ = {
   docEl: document.documentElement,
   
+  body: document.body,
+  
   id: function(id) {
     return document.getElementById(id);
   },
@@ -69,7 +71,7 @@ var $ = {
     return xhr;
   },
   
-  postIdFromNode: function(el) {
+  postFromNode: function(el) {
     var root = $.docEl;
     
     while (el !== root) {

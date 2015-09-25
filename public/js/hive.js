@@ -110,6 +110,84 @@ var QuotePreviews = {
   }
 };
 
+var PostMenu = {
+  node: null,
+  
+  items: [],
+  
+  init: function(items) {
+    if (this.items.length) {
+      ClickHandler.commands['p-m'] = this.onClick;
+    }
+  },
+  
+  onClick: function(btn) {
+    var i, item, items, len, cnt, el, baseEl;
+    
+    if (PostMenu.node) {
+      PostMenu.close();
+    }
+    
+    items = PostMenu.items;
+    
+    cnt = $.el('ul');
+    cnt.id = 'post-menu';
+    cnt.setAttribute('data-pid', $.postFromNode(btn).id.split('-').pop());
+    
+    for (i = 0, len = items.length; i < len; ++i) {
+      item = items[i];
+      
+      if (typeof item === 'function') {
+        item = item(btn);
+        
+        if (item === false) {
+          continue;
+        }
+      }
+      
+      cnt.appendChild(item);
+    }
+    
+    PostMenu.node = cnt;
+    
+    $.on(document, 'click', PostMenu.close);
+    
+    $.body.appendChild(cnt);
+    
+    PostMenu.adjustPos(btn, cnt);
+  },
+  
+  adjustPos: function(btn, el) {
+    var anchor, top, left, margin, style;
+    
+    margin = 4;
+    
+    anchor = btn.getBoundingClientRect();
+    
+    top = anchor.top + btn.offsetHeight + margin;
+    left = anchor.left - el.offsetWidth / 2 + btn.offsetWidth / 2;
+    
+    if (left + el.offsetWidth > $.docEl.clientWidth) {
+      left = $.docEl - el.offsetWidth - margin;
+    }
+    
+    style = el.style;
+    style.display = 'none';
+    style.top = (top + window.pageYOffset) + 'px';
+    style.left = (left + window.pageXOffset) + 'px';
+    style.display = '';
+  },
+  
+  close: function() {
+    $.off(document, 'click', PostMenu.close);
+    
+    if (PostMenu.node) {
+      PostMenu.node.parentNode.removeChild(PostMenu.node);
+      PostMenu.node = null;
+    }
+  }
+};
+
 var Hive = {
   xhr: {},
   
@@ -123,7 +201,7 @@ var Hive = {
       'markup': Hive.onMarkupClick,
       'captcha': Hive.onDisplayCaptchaClick,
       'tegaki': Hive.onTegakiClick,
-      'post-menu': Hive.onReportClick, // do the actual post menu some day
+      'report-post': Hive.onReportClick,
       'delete-post': Hive.onDeletePostClick,
       'pin-thread': Hive.onPinThreadClick,
       'lock-thread': Hive.onLockThreadClick
@@ -138,24 +216,45 @@ var Hive = {
     
     $.off(document, 'DOMContentLoaded', Hive.run);
     
-    page = document.body.getAttribute('data-page');
+    page = $.body.getAttribute('data-page');
     
     if (page === 'read') {
+      if ($.body.hasAttribute('data-reporting')) {
+        Hive.initReportCtrl();
+      }
+      
       if ($.getCookie('csrf')) {
-        Hive.addManagerControls();
+        Hive.initModCtrl();
       }
     }
     else if (page === 'report') {
       Hive.loadReCaptcha();
     }
     
+    PostMenu.init();
+    
     window.prettyPrint && window.prettyPrint();
   },
   
+  initReportCtrl: function() {
+    var el = $.el('li');
+    
+    el.innerHTML =
+      '<span class="link-span" data-cmd="report-post">Report</span>';
+      
+    PostMenu.items.push(el);
+  },
+  
   onReportClick: function(t) {
-    var params, src;
-    params = location.pathname.split('/');
-    src = '/report/' + params[1] + '/' + params[3] + '/' + t.parentNode.parentNode.id;
+    var board, thread, pid, src;
+    
+    board = $.body.getAttribute('data-board');
+    thread = $.body.getAttribute('data-thread');
+    pid = PostMenu.node.getAttribute('data-pid');
+    
+    src = '/report/' + board + '/' + thread
+        + '/' + pid;
+    
     window.open(src);
   },
   
@@ -441,31 +540,14 @@ var Hive = {
   },
   
   onDeletePostClick: function(t) {
-    var el, path, slug, thread, post, file_only;
+    var el, path, slug, thread, file_only;
     
-    el = $.postIdFromNode(t);
-    
-    if (!el) {
-      return;
-    }
-    
+    board = $.body.getAttribute('data-board');
+    thread = $.body.getAttribute('data-thread');
+    pid = PostMenu.node.getAttribute('data-pid');
     file_only = t.hasAttribute('data-delfile');
     
-    path = el.id.split('-');
-    
-    if (path.length < 3) {
-      post = path.pop();
-      path = location.pathname.split('/');
-      slug = path[1];
-      thread = path[3];
-    }
-    else {
-      post = path.pop();
-      thread = path.pop();
-      slug = path.pop();
-    }
-    
-    Hive.deletePost(el.id, slug, thread, post, file_only);
+    Hive.deletePost(pid, board, thread, pid, file_only);
   },
   
   onLockThreadClick: function(btn) {
@@ -539,59 +621,53 @@ var Hive = {
     }
   },
   
-  addManagerControls: function() {
-    var i, cnt, el, nodes, ctrl, path, post_id;
+  initModCtrl: function() {
+    PostMenu.items.push(Hive.buildModCtrl);
+  },
+  
+  buildModCtrl: function(el) {
+    var cnt, ctrl, path, board, thread, post_id;
     
-    // fixme
-    path = location.pathname.split('/');
-    path = '/manage/bans/create/' + path[1] + '/' + path[3] + '/';
+    board = $.body.getAttribute('data-board');
+    thread = $.body.getAttribute('data-thread');
     
-    nodes = $.cls('post-head');
+    path = '/manage/bans/create/' + board + '/' + thread + '/';
     
-    for (i = 0; el = nodes[i]; ++i) {
-      post_id = el.parentNode.id.split('-').pop();
-      
-      cnt = $.el('span');
-      cnt.className = 'manage-ctrl';
-      
-      ctrl = $.el('a');
-      ctrl.setAttribute('data-cmd', 'delete-post');
-      ctrl.setAttribute('data-tip', 'Delete');
-      ctrl.textContent = 'D';
+    post_id = $.postFromNode(el).id.split('-').pop();
+    
+    cnt = $.frag();
+    
+    ctrl = $.el('li');
+    ctrl.innerHTML =
+      '<span class="link-span" data-cmd="delete-post">Delete</span>';
+    cnt.appendChild(ctrl);
+    
+    if ($.cls('post-file-thumb', el.parentNode)[0]) {
+      ctrl = $.el('li');
+      ctrl.innerHTML =
+        '<span class="link-span" data-delfile '
+        + 'data-cmd="delete-post">Delete File</span>';
       cnt.appendChild(ctrl);
-      
-      if ($.cls('post-file-thumb', el.parentNode)[0]) {
-        ctrl = $.el('a');
-        ctrl.setAttribute('data-cmd', 'delete-post');
-        ctrl.setAttribute('data-delfile', '1');
-        ctrl.setAttribute('data-tip', 'Delete file');
-        ctrl.textContent = 'Df';
-        cnt.appendChild(ctrl);
-      }
-      
-      ctrl = $.el('a');
-      ctrl.setAttribute('target', '_blank');
-      ctrl.setAttribute('data-tip', 'Ban');
-      ctrl.href = path + post_id;
-      ctrl.textContent = 'B';
-      cnt.appendChild(ctrl);
-      
-      if (post_id === '1') {
-        ctrl = $.el('a');
-        ctrl.setAttribute('data-cmd', 'pin-thread');
-        ctrl.setAttribute('data-tip', 'Pin thread');
-        ctrl.textContent = 'P';
-        cnt.appendChild(ctrl);
-        
-        ctrl = $.el('a');
-        ctrl.setAttribute('data-cmd', 'lock-thread');
-        ctrl.setAttribute('data-tip', 'Lock thread');
-        ctrl.textContent = 'L';
-        cnt.appendChild(ctrl);
-     }
-      
-      el.appendChild(cnt);
     }
+    
+    ctrl = $.el('li');
+    ctrl.innerHTML =
+      '<a href="' + path + post_id + '" target="_blank">Ban</a>';
+    cnt.appendChild(ctrl);
+    
+    if (post_id === '1') {
+      ctrl = $.el('li');
+      ctrl.innerHTML =
+        '<span class="link-span" data-cmd="pin-thread">Toggle Pin</span>';
+      cnt.appendChild(ctrl);
+      
+      ctrl = $.el('li');
+      ctrl.innerHTML =
+        '<span class="link-span" data-cmd="lock-thread">Toggle Lock</span>';
+      cnt.appendChild(ctrl);
+   }
+    
+   return cnt;
   }
 };
 
