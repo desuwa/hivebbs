@@ -1,3 +1,5 @@
+'use strict';
+
 var QuotePreviews = {
   frozen: false,
   
@@ -548,7 +550,7 @@ var Hive = {
   },
   
   onDeletePostClick: function(t) {
-    var el, path, slug, thread, file_only;
+    var board, thread, pid, file_only;
     
     board = $.body.getAttribute('data-board');
     thread = $.body.getAttribute('data-thread');

@@ -140,8 +140,14 @@ task :jshint do |t|
     laxbreak: true,
     boss: true,
     expr: true,
-    sub: true
+    sub: true,
+    browser: true,
+    devel: true,
+    globalstrict: true,
+    '-W079' => true # no-native-reassign
   }
+  
+  globals = ['$', 'Tegaki', 'Tip', 'ClickHandler', 'Hive']
   
   root = 'public/js'
   
@@ -151,7 +157,7 @@ task :jshint do |t|
     next unless File.exist?(f)
     
     puts "--> #{root}/#{basename}.js"
-    puts Jshintrb.report(File.read(f), opts)
+    puts Jshintrb.report(File.read(f), opts, globals)
   end
 end
 

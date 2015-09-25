@@ -1,3 +1,5 @@
+'use strict';
+
 var $ = {
   docEl: document.documentElement,
   
