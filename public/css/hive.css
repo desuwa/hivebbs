@@ -214,6 +214,10 @@ input {
   border: 0;
 }
 
+.no-post-menu .post-menu-btn {
+  display: none;
+}
+
 #post-menu {
   position: absolute;
   text-align: center;

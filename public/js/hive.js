@@ -119,6 +119,9 @@ var PostMenu = {
     if (this.items.length) {
       ClickHandler.commands['p-m'] = this.onClick;
     }
+    else {
+      $.body.classList.add('no-post-menu');
+    }
   },
   
   onClick: function(btn) {
