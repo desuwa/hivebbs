@@ -633,7 +633,9 @@ var Hive = {
     
     path = '/manage/bans/create/' + board + '/' + thread + '/';
     
-    post_id = $.postFromNode(el).id.split('-').pop();
+    el = $.postFromNode(el);
+    
+    post_id = el.id.split('-').pop();
     
     cnt = $.frag();
     
@@ -642,7 +644,7 @@ var Hive = {
       '<span class="link-span" data-cmd="delete-post">Delete</span>';
     cnt.appendChild(ctrl);
     
-    if ($.cls('post-file-thumb', el.parentNode)[0]) {
+    if ($.cls('post-file-thumb', el)[0]) {
       ctrl = $.el('li');
       ctrl.innerHTML =
         '<span class="link-span" data-delfile '
