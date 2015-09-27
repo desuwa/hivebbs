@@ -178,7 +178,7 @@ var PostMenu = {
     left = anchor.left - el.offsetWidth / 2 + btn.offsetWidth / 2;
     
     if (left + el.offsetWidth > $.docEl.clientWidth) {
-      left = $.docEl - el.offsetWidth - margin;
+      left = $.docEl.clientWidth - el.offsetWidth - margin;
     }
     
     style = el.style;
