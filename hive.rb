@@ -460,7 +460,9 @@ class BBS < Sinatra::Base
       FileUtils.rm_f(tmp_thumb_path) if tmp_thumb_path
     end
     
-    if is_new_thread && board[:thread_count] > cfg(:thread_limit, @board_cfg)
+    thread_limit = cfg(:thread_limit, @board_cfg)
+    
+    if is_new_thread && thread_limit && board[:thread_count] > thread_limit
       lt = DB[:threads]
         .where(:board_id => board[:id])
         .reverse_order(:updated_on)

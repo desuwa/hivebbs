@@ -142,6 +142,14 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
+    it 'disables pruning if thread_limit is nil' do
+      CONFIG[:thread_limit] = nil
+      DB.transaction(:rollback => :always) do
+        tid = make_post({ 'title' => 'test', 'comment' => 'test' })
+        assert last_response.body.include?('http-equiv="Refresh"')
+      end
+    end
+    
     it 'understands sage' do
       DB.transaction(:rollback => :always) do
         th = DB[:threads].first(:id => 1)
