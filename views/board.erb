@@ -28,6 +28,17 @@ time_format = t(:time_format)
   <% end %>
   <% end %>
 </ul>
+<% if @current_page %>
+<ul class="pagination">
+<% paginate_html(@current_page, @total_pages) do |page| %>
+  <li><% if page == :first %><a class="pgn-ctrl" href="/<%= @board[:slug] %>/">«</a>
+  <% elsif page == :previous %><a class="pgn-ctrl" href="/<%= "#{@board[:slug]}/#{@current_page - 1}" %>">‹</a>
+  <% elsif page == :next %><a class="pgn-ctrl" href="/<%= "#{@board[:slug]}/#{@current_page + 1}" %>">›</a>
+  <% elsif @current_page == page %><span class="pgn-cur"><%= page %></span>
+  <% else %><a href="<%= (page == 1 ? "/#{@board[:slug]}/" : page) %>"><%= page %></a><% end %></li>
+<% end %>
+</ul>
+<% end %>
 <%= erb :form %>
 </div>
 <%= erb :footer %>

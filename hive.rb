@@ -78,17 +78,47 @@ class BBS < Sinatra::Base
     erb :index
   end
   
-  get %r{^/([-_0-9a-z]+)/$} do |slug|
+  get %r{^/([-_0-9a-z]+)/([0-9]+)?$} do |slug, page|
     @board = DB[:boards].where(:slug => slug).first
     
     halt 404 if !@board
     
+    @board_cfg = get_board_config(@board)
+    
+    page_size = cfg(:threads_per_page, @board_cfg)
+    
+    offset = nil
+    @current_page = nil
+    @total_pages = nil
+    
+    if page_size
+      thread_count = DB[:threads].where(:board_id => @board[:id]).count
+      
+      page = page.to_i
+      
+      if page > 1
+        offset = (page - 1) * page_size
+      elsif page == 1
+        redirect to("/#{@board[:slug]}/"), 301
+      else
+        page = 1
+      end
+      
+      @total_pages = (thread_count / page_size.to_f).ceil
+      
+      halt 404 if page > @total_pages
+      
+      @current_page = page
+    elsif page
+      halt 404
+    end
+    
     @threads = DB[:threads]
       .reverse_order(:pinned, :updated_on)
       .where(:board_id => @board[:id])
+      .limit(page_size)
+      .offset(offset)
       .all
-    
-    @board_cfg = get_board_config(@board)
     
     erb :board
   end

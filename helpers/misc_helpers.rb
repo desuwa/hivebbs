@@ -57,6 +57,28 @@ class BBS < Sinatra::Base
     ASSETS[src] = "#{src}?#{v[0, 8]}".freeze # query strings, for now...
   end
   
+  def paginate_html(page, total, count = 5)
+    return if total < 2
+    
+    buffer = count / 2
+    
+    stop = page + buffer
+    stop = count if stop < count
+    stop = total if stop > total
+    
+    start = stop - count + 1
+    start = 1 if start < 1
+    
+    if block_given?
+      yield :first if start > 1
+      yield :previous if page > 1
+      (start..stop).each { |i| yield i }
+      yield :next if total > page
+    else
+      start..stop
+    end
+  end
+  
   def decode_tegaki_upload(data)
     ext = data.scan(/^data:image\/([a-z0-9]+);base64,/).flatten.join
     

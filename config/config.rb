@@ -12,6 +12,7 @@
   
   thread_limit: 500,
   post_limit: 500,
+  threads_per_page: 50,
   
   author_length: 50,
   title_length: 70,

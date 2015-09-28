@@ -9,22 +9,28 @@ task :test => 'test:all'
 namespace :test do
   TestTask.new(:all) do |t|
     t.description = 'Run all tests'
-    t.test_files = FileList['spec/*_spec.rb']
+    t.test_files = FileList['spec/*_spec.rb', 'spec/*_test.rb']
   end
   
   TestTask.new(:nomedia) do |t|
     t.description = 'Skip all upload handlers tests'
-    t.test_files = Dir['spec/*_spec.rb'].reject { |f| /imagemagic|ffmpeg/ =~f }
+    t.test_files = Dir['spec/*_spec.rb', 'spec/*_test.rb'].reject do |f|
+      /imagemagic|ffmpeg/ =~f
+    end
   end
   
   TestTask.new(:noffmpeg) do |t|
     t.description = 'Skip FFmpeg handler tests'
-    t.test_files = Dir['spec/*_spec.rb'].reject { |f| f.include?('ffmpeg') }
+    t.test_files = Dir['spec/*_spec.rb', 'spec/*_test.rb'].reject do |f|
+      f.include?('ffmpeg')
+    end
   end
   
   TestTask.new(:nomagick) do |t|
     t.description = 'Skip ImageMagick handler tests'
-    t.test_files = Dir['spec/*_spec.rb'].reject { |f| f.include?('magick') }
+    t.test_files = Dir['spec/*_spec.rb', 'spec/*_test.rb'].reject do |f|
+      f.include?('magick')
+    end
   end
   
   desc 'Run test:all under SimpleCov'
