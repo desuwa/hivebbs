@@ -68,7 +68,7 @@ Get into the directory where you extracted or cloned the sources.
 
 **Configure the database**
 
-Copy `config/db.rb.sample` to `config/db.rb` and edit it.
+Copy `config/db.sample.rb` to `config/db.rb` and edit it.
 
 Set the `adapter` to `mysql2` for MySQL, `postgres` for PostgreSQL, `sqlite` for SQLite
 
@@ -95,6 +95,10 @@ This will create a `config/trip.key` file containing a random key which will be 
 or
 `rake gentripkey[512]`
 if you want to change the size of the key in bytes. It's 256 by default.
+
+**Copy the default configration**
+
+Copy `config/config.sample.rb` to `config/config.rb` and edit it if needed.
 
 At this point you should be able to start HiveBBS in development mode:
 

@@ -1,3 +1,3 @@
 *.rb
 *.key
-!config.rb
+!*.sample.rb
