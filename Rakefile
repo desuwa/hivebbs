@@ -32,18 +32,6 @@ namespace :test do
       f.include?('magick')
     end
   end
-  
-  desc 'Run test:all under SimpleCov'
-  task :cov do |t|
-    require 'simplecov'
-    
-    SimpleCov.start do
-      add_filter '/spec/'
-      command_name 'test:all'
-    end
-    
-    Rake::Task['test:all'].invoke
-  end
 end
 
 task :build => 'build:all'

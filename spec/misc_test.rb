@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative '../hive.rb'
-require 'minitest'
-require 'minitest/autorun'
+require_relative 'spec_helper.rb'
 
 class HiveTest < MiniTest::Test
   include Hive

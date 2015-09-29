@@ -1,5 +1,10 @@
 ENV['RACK_ENV'] = 'test'
 
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start { add_filter '/spec/' }
+end
+
 require_relative '../hive.rb'
 require 'minitest'
 require 'minitest/autorun'
