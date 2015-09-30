@@ -66,8 +66,6 @@ h3 { font-size: 18px; }
 
 form, p, ul, ol, table { margin-bottom: 1em; }
 
-thead { font-weight: bold; }
-
 .disabled { opacity: 0.5; }
 .hidden { display: none !important; }
 .invisible { visibility: hidden; }
@@ -80,19 +78,24 @@ thead { font-weight: bold; }
   overflow: auto;
 }
 
+.table  {
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+}
+
+.table th,
 .table td {
-  padding: 2px 5px;
+  padding: 4px 6px;
   text-align: center;
-  vertical-align: top;
   border-right: 1px solid rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   height: 1em;
   overflow: hidden;
 }
 
-.table  {
-  border-left: 1px solid rgba(0, 0, 0, 0.2);
-  border-top: 1px solid rgba(0, 0, 0, 0.2);
+.table th {
+  font-weight: bold;
 }
 
 .pagination li {
@@ -160,6 +163,7 @@ input {
 
 .post {
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .post-num {
@@ -182,7 +186,6 @@ input {
 .post-author {
   color: #00A550;
   font-weight: bold;
-  overflow: hidden;
   word-wrap: break-word;
 }
 
@@ -196,7 +199,6 @@ input {
   margin-left: 15px;
   margin-top: 10px;
   max-width: 100%;
-  overflow: hidden;
   word-wrap: break-word;
 }
 
@@ -597,8 +599,14 @@ input[type="checkbox"] {
   width: 100%;
 }
 
-#ban-list .ban-list-reason {
-  text-align: left;
+.table .col-xs { width: 50px; }
+.table .col-s { width: 80px; }
+.table .col-m { width: 150px ;}
+.table .col-txt { text-align: left; }
+
+.note {
+  color: #708090;
+  font-size: 0.8em;
 }
 
 #post-report-form #captcha-cnt {

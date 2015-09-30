@@ -73,6 +73,18 @@ class BBS < Sinatra::Base
     failure t(:captcha_generic_error)
   end
   
+  def ban_duration_ts(created_on, duration)
+    if duration < 0
+      expires_on = MAX_BAN
+    elsif duration == 0
+      expires_on = 0
+    else
+      expires_on = created_on + duration * 3600
+      expires_on = MAX_BAN if expires_on > MAX_BAN
+    end
+    expires_on
+  end
+  
   def hash_password(plain_pwd)
     BCrypt::Password.create(plain_pwd)
   end

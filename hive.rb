@@ -651,11 +651,11 @@ class BBS < Sinatra::Base
     forbidden unless user = get_user_session
     forbidden unless user_has_level?(user, :mod)
     
-    slug = params[:slug].to_s
-    thread_num = params[:thread_num].to_i
-    post_num = params[:post_num].to_i
+    @slug = params[:slug].to_s
+    @thread_num = params[:thread_num].to_i
+    @post_num = params[:post_num].to_i
     
-    @post = get_post_by_path(slug, thread_num, post_num)
+    @post = get_post_by_path(@slug, @thread_num, @post_num)
     
     failure t(:bad_post) unless @post
     
@@ -666,14 +666,17 @@ class BBS < Sinatra::Base
     forbidden unless user = get_user_session
     forbidden unless user_has_level?(user, :mod)
     
-    @ban = DB[:bans].first(:id => params[:id].to_i)
-    
-    failure t(:invalid_ban_id) unless @ban
+    @ban = DB[:bans]
+      .select_all(:bans)
+      .select_append(:c__username___creator_name, :u__username___updater_name)
+      .left_join(:users___c, :id => :bans__created_by)
+      .left_join(:users___u, :id => :bans__updated_by)
+      .first(:bans__id => params[:id].to_i)
     
     erb :manage_bans_edit
   end
   
-  post %r{/manage/bans/(create|update)/([a-z0-9/]+)$} do |action, target|
+  post '/manage/bans/update' do
     validate_csrf_token
     
     forbidden unless user = get_user_session
@@ -683,15 +686,6 @@ class BBS < Sinatra::Base
     
     # Expiration
     duration = params['duration'].to_i
-    
-    if duration < 0
-      expires_on = MAX_BAN
-    elsif duration == 0
-      expires_on = 0
-    else
-      expires_on = now + duration * 3600
-      expires_on = MAX_BAN if expires_on > MAX_BAN
-    end
     
     # Reason
     reason = params['reason'].to_s.strip
@@ -709,21 +703,33 @@ class BBS < Sinatra::Base
       info = EscapeUtils.escape_html(info)
     end
     
-    # Create / Update
     ban = {
-      :created_on => now,
-      :expires_on => expires_on,
       :duration => duration,
       :reason => reason,
       :info => info,
     }
     
-    if action == 'create'
-      slug, thread_num, post_num = target.split('/', 3)
+    if params['id']
+      ban_id = params['id'].to_i
       
-      slug = slug.to_s
-      thread_num = thread_num.to_i
-      post_num = post_num.to_i
+      target_ban = DB[:bans].select(:created_on, :active).first(:id => ban_id)
+      
+      failure t(:invalid_ban_id) unless target_ban 
+      
+      active = !!params['active']
+      
+      if target_ban[:active] != active
+        ban[:active] = active
+      end
+
+      ban[:expires_on] = ban_duration_ts(target_ban[:created_on], duration)
+      ban[:updated_by] = user[:id]
+      
+      DB[:bans].where(:id => ban_id).update(ban)
+    else
+      slug = params['board'].to_s
+      thread_num = params['thread'].to_i
+      post_num = params['post'].to_i
       
       post = get_post_by_path(slug, thread_num, post_num)
       failure t(:bad_post) unless post
@@ -739,26 +745,24 @@ class BBS < Sinatra::Base
       end
       
       post[:slug] = slug
+      post[:thread_num] = thread_num
+      
+      if post_num == 1
+        post[:title] = DB[:threads]
+          .where(:id => post[:thread_id])
+          .get(:title)
+      end
       
       ban[:ip] = Sequel::SQL::Blob.new(ip_addr.hton)
       ban[:post] = post.to_json
       ban[:created_by] = user[:id]
+      ban[:created_on] = now
+      ban[:expires_on] = ban_duration_ts(now, duration)
       
-      DB[:bans].insert(ban)
-    else
-      target = target.to_i
-      
-      target_ban = DB[:bans].select(:active).first(:id => target)
-      
-      failure t(:invalid_ban_id) unless target_ban 
-      failure t(:cannot_edit_expired_ban) unless target_ban[:active]
-      
-      ban[:updated_by] = user[:id]
-      
-      DB[:bans].where(:id => target).update(ban)
+      ban_id = DB[:bans].insert(ban)
     end
     
-    success t(:done)
+    success(t(:done), request.path + "/#{ban_id}")
   end
   
   get '/manage/bans' do

@@ -18,9 +18,9 @@
   <h2>You <%= ban[:duration] == 0 ? 'have been warned' : 'are banned' %></h2>
   <div class="ban-head">Reason:</div>
   <div class="ban-reason"><%= ban[:reason] %></div>
-  <% if ban[:duration] >= 0 %>
+  <% if ban[:duration] != 0 %>
   <div class="ban-head">Expires on:</div>
-  <div class="ban-reason"><%= ban[:expires_on] == MAX_BAN ? 'Never' : Time.at(ban[:expires_on]).utc.strftime(t(:time_format)) %></div>
+  <div class="ban-reason"><%= ban[:duration] < 0 ? 'Never' : Time.at(ban[:expires_on]).utc.strftime(t(:time_format)) %></div>
   <% end %>
   <% if ban[:post]; post = JSON.parse(ban[:post], symbolize_names: true) %>
   <div class="ban-post">
@@ -31,7 +31,7 @@
     <% if post[:file_hash];
     file_meta = JSON.parse(post[:meta], symbolize_names: true)[:file] %>
     <div class="ban-head">File:</div>
-    <div class="ban-post-file"><%= file_meta[:ext] %> <%= file_meta[:w] %>x<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %> <%= post[:file_hash] %></div>
+    <div class="ban-post-file"><%= file_meta[:ext] %> <%= file_meta[:w] %>×<%= file_meta[:h] %> <%= pretty_bytesize(file_meta[:size]) %> <%= post[:file_hash] %></div>
     <% end %>
   </div>
   <% end %>

@@ -24,7 +24,7 @@ class HiveSpec < MiniTest::Spec
         '/bans', '/bans/create/test/1/1', '/boards/update/1', '/reports'
       ],
       :post => [
-        '/bans/create/test/1/1', '/boards/update/1',
+        '/bans/update', '/boards/update/1',
         '/posts/delete', '/reports/delete', '/threads/flags'
       ]
     }
@@ -412,7 +412,8 @@ class HiveSpec < MiniTest::Spec
       sid_as('mod')
       
       DB.transaction(:rollback => :always) do
-        post '/manage/bans/create/test/1/1', {
+        post '/manage/bans/update', {
+          'board' => 'test', 'thread' => 1, 'post' => 1,
           'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
         }, { 'REMOTE_ADDR' => '192.0.2.1' }
         assert_equal(1, DB[:bans].count)
@@ -423,7 +424,8 @@ class HiveSpec < MiniTest::Spec
       sid_as('mod')
       
       DB.transaction(:rollback => :always) do
-        post '/manage/bans/create/test/1/1', {
+        post '/manage/bans/update', {
+          'board' => 'test', 'thread' => 1, 'post' => 1,
           'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
         }, { 'REMOTE_ADDR' => '2001:db8:1:1::1' }
         assert_equal(1, DB[:bans].count)
@@ -434,7 +436,8 @@ class HiveSpec < MiniTest::Spec
       sid_as('mod')
       
       DB.transaction(:rollback => :always) do
-        post '/manage/bans/create/test/1/1', {
+        post '/manage/bans/update', {
+          'board' => 'test', 'thread' => 1, 'post' => 1,
           'duration' => 0, 'reason' => 'test', 'csrf' => 'ok'
         }
         assert_equal(1, DB[:bans].count)
@@ -445,7 +448,8 @@ class HiveSpec < MiniTest::Spec
       sid_as('mod')
       
       DB.transaction(:rollback => :always) do
-        post '/manage/bans/create/test/1/1', {
+        post '/manage/bans/update', {
+          'board' => 'test', 'thread' => 1, 'post' => 1,
           'duration' => -1, 'reason' => 'test', 'csrf' => 'ok'
         }
         assert_equal(1, DB[:bans].count)
@@ -453,7 +457,8 @@ class HiveSpec < MiniTest::Spec
       end
       
       DB.transaction(:rollback => :always) do
-        post '/manage/bans/create/test/1/1', {
+        post '/manage/bans/update', {
+          'board' => 'test', 'thread' => 1, 'post' => 1,
           'duration' => Time.now.to_i, 'reason' => 'test', 'csrf' => 'ok'
         }
         assert_equal(1, DB[:bans].count)
@@ -465,7 +470,7 @@ class HiveSpec < MiniTest::Spec
       sid_as('mod')
       
       DB.transaction(:rollback => :always) do
-        post '/manage/bans/create/test/1/1', {
+        post '/manage/bans/update', {
           'duration' => 24, 'reason' => '', 'csrf' => 'ok'
         }
         assert_equal(0, DB[:bans].count)
@@ -479,25 +484,11 @@ class HiveSpec < MiniTest::Spec
       DB.transaction(:rollback => :always) do
         reason = Time.now.to_s
         ban_id = prepare_ban('192.0.2.1', 24)
-        post "/manage/bans/update/#{ban_id}", {
-          'duration' => 24, 'reason' => reason, 'csrf' => 'ok'
+        post "/manage/bans/update", {
+          'id' => ban_id, 'duration' => 24, 'reason' => reason, 'csrf' => 'ok'
         }
         assert_equal(1, DB[:bans].count)
         assert_equal(reason, DB[:bans].first[:reason])
-      end
-    end
-    
-    it 'forbids the modification of inactive bans' do
-      sid_as('mod')
-      
-      DB.transaction(:rollback => :always) do
-        reason = Time.now.to_s
-        ban_id = prepare_ban('192.0.2.1', 24, false)
-        post "/manage/bans/update/#{ban_id}", {
-          'duration' => 24, 'reason' => reason, 'csrf' => 'ok'
-        }
-        refute_equal(reason, DB[:bans].first[:reason])
-        assert last_response.body.include?(t(:cannot_edit_expired_ban))
       end
     end
   end

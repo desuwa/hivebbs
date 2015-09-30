@@ -18,37 +18,32 @@
 <h3><% if @ip %>Bans for <%= @ip %><% else %>Recent entries<% end %></h3>
 <table id="ban-list" class="table">
   <thead>
-    <td>Active</td>
-    <td>IP or Subnet</td>
-    <td>Reason</td>
-    <td>Description</td>
-    <td>Created by</td>
-    <td>Created on</td>
-    <td>Expires on</td>
-    <td>Duration</td>
-    <td></td>
+    <th>Active</th>
+    <th>IP or Subnet</th>
+    <th>Reason and Description</th>
+    <th>Created by</th>
+    <th>Created on</th>
+    <th>Expires on</th>
+    <th>Duration</th>
+    <th></th>
   </thead>
   <tbody>
   <% time_format = t(:time_format) %>
   <% @bans.each do |ban| %>
   <tr>
-    <td><% if ban[:active] %>&check;<% end %></td>
-    <td><%= IPAddr.new_ntoh(ban[:ip]) %></td>
-    <td class="ban-list-reason"><%= ban[:reason] %></td>
-    <td class="ban-list-reason"><%= ban[:info] %></td>
-    <td><%= ban[:username] %></td>
-    <td><%= Time.at(ban[:created_on]).utc.strftime(time_format) %></td>
-    <% if ban[:duration] == MAX_BAN %>
-    <td></td>
-    <td>Permaban</td>
-    <% elsif ban[:duration] == 0 %>
-    <td></td>
-    <td>Warning</td>
-    <% else %>
-    <td><%= Time.at(ban[:expires_on]).utc.strftime(time_format) %></td>
-    <td><%= ban[:duration] %> hour<%= 's' if ban[:duration] > 1  %></td>
-    <% end %>
-    <td><a href="/manage/bans/update/<%= ban[:id] %>">Edit</a></td>
+    <td class="col-xs"><% if ban[:active] %>&check;<% end %></td>
+    <td class="col-m"><%= IPAddr.new_ntoh(ban[:ip]) %></td>
+    <td class="col-txt"><%= ban[:reason] %><% if ban[:info] %><div class="note"><%= ban[:info] %></div><% end %></td>
+    <td class="col-s"><%= ban[:username] %></td>
+    <td class="col-m"><%= Time.at(ban[:created_on]).utc.strftime(time_format) %></td>
+    <td class="col-m"><% if ban[:duration] > 0 %><%= Time.at(ban[:expires_on]).utc.strftime(time_format) %><% end %></td>
+    <td class="col-s"><%
+      if ban[:duration] < 0 %>Permanent<%
+      elsif ban[:duration] == 0 %>Warning<%
+      else %><%= ban[:duration] %> hour<%= 's' if ban[:duration] > 1 %><%
+      end
+    %></td>
+    <td class="col-xs"><a href="/manage/bans/update/<%= ban[:id] %>">Edit</a></td>
   </tr>
   <% end %>
   </tbody>
