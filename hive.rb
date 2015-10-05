@@ -85,26 +85,30 @@ class BBS < Sinatra::Base
     
     @board_cfg = get_board_config(@board)
     
-    page_size = cfg(:threads_per_page, @board_cfg)
+    threads_per_page = cfg(:threads_per_page, @board_cfg)
     
     offset = nil
     @current_page = nil
     @total_pages = nil
     
-    if page_size
+    if threads_per_page
       thread_count = DB[:threads].where(:board_id => @board[:id]).count
       
-      page = page.to_i
-      
-      if page > 1
-        offset = (page - 1) * page_size
-      elsif page == 1
-        redirect to("/#{@board[:slug]}/"), 301
-      else
+      if !page
         page = 1
+      else
+        page = page.to_i
+        
+        if page > 1
+          offset = (page - 1) * threads_per_page
+        elsif page == 1
+          redirect to("/#{@board[:slug]}/"), 301
+        else
+          halt 404
+        end
       end
       
-      @total_pages = (thread_count / page_size.to_f).ceil
+      @total_pages = (thread_count / threads_per_page.to_f).ceil
       
       halt 404 if page > @total_pages
       
@@ -116,7 +120,7 @@ class BBS < Sinatra::Base
     @threads = DB[:threads]
       .reverse_order(:pinned, :updated_on)
       .where(:board_id => @board[:id])
-      .limit(page_size)
+      .limit(threads_per_page)
       .offset(offset)
       .all
     
@@ -673,6 +677,8 @@ class BBS < Sinatra::Base
       .left_join(:users___u, :id => :bans__updated_by)
       .first(:bans__id => params[:id].to_i)
     
+    halt 404 if !@ban
+    
     erb :manage_bans_edit
   end
   
@@ -1105,6 +1111,7 @@ class BBS < Sinatra::Base
 
   get '/manage/profile' do
     forbidden unless @user = get_user_session
+    forbidden unless user_has_level?(@user, :mod)
     
     erb :manage_profile
   end
@@ -1113,6 +1120,7 @@ class BBS < Sinatra::Base
     validate_csrf_token
     
     forbidden unless user = get_user_session
+    forbidden unless user_has_level?(user, :mod)
     
     old_pwd = params['old_pwd'].to_s
     new_pwd = params['new_pwd'].to_s

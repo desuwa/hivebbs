@@ -21,10 +21,11 @@ class HiveSpec < MiniTest::Spec
     },
     :mod => {
       :get => [
-        '/bans', '/bans/create/test/1/1', '/boards/update/1', '/reports'
+        '', '/bans', '/bans/create/test/1/1', '/boards/update/1', '/reports',
+        '/profile'
       ],
       :post => [
-        '/bans/update', '/boards/update/1',
+        '/bans/update', '/boards/update/1', '/profile',
         '/posts/delete', '/reports/delete', '/threads/flags'
       ]
     }
@@ -48,7 +49,12 @@ class HiveSpec < MiniTest::Spec
   end
   
   describe '/manage/auth' do
-    it 'works' do
+    it 'shows the login form' do
+      get '/manage/auth'
+      assert last_response.ok?
+    end
+    
+    it 'logs users in' do
       auth('admin')
       last_response.location.must_include '/manage'
     end
@@ -91,7 +97,11 @@ class HiveSpec < MiniTest::Spec
               end
             end
             
-            assert last_response.forbidden?, "#{group} #{method} #{path}"
+            if path == '/manage'
+              assert last_response.location.include?('/manage'), '/manage'
+            else
+              assert last_response.forbidden?, "#{group} #{method} #{path}"
+            end
           end
         end
       end
@@ -109,6 +119,16 @@ class HiveSpec < MiniTest::Spec
           assert last_response.bad_request?, "#{group} /manage#{path}"
         end
       end
+    end
+    
+    it 'destroys the session after logging out' do
+      sid_as('mod')
+      
+      post '/manage/logout', { 'csrf' => 'ok' }
+      
+      assert last_response.redirect?, last_response.body
+      assert_empty rack_mock_session.cookie_jar['sid']
+      assert_empty rack_mock_session.cookie_jar['csrf']
     end
   end
   
@@ -132,6 +152,12 @@ class HiveSpec < MiniTest::Spec
   end
   
   describe '/manage/users' do
+    it 'allows to edit user profiles' do
+      sid_as('admin')
+      get '/manage/users/update/1'
+      assert last_response.body.include?(DB[:users].where(id: 1).get(:username))
+    end
+    
     it 'creates users' do
       sid_as('admin')
       
@@ -402,33 +428,69 @@ class HiveSpec < MiniTest::Spec
   describe '/manage/bans' do
     # The duration is expressed in hours
     
+    it 'allows to create bans from posts' do
+      sid_as('mod')
+      get '/manage/bans/create/test/1/1'
+      assert last_response.ok?, last_response.body
+    end
+    
     it 'shows a list of most recent bans' do
       sid_as('mod')
       get '/manage/bans'
       assert last_response.ok?, last_response.body
     end
     
-    it 'creates IPv4 bans from posts' do
+    it 'allows to search bans by IP' do
       sid_as('mod')
       
-      DB.transaction(:rollback => :always) do
-        post '/manage/bans/update', {
-          'board' => 'test', 'thread' => 1, 'post' => 1,
-          'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
-        }, { 'REMOTE_ADDR' => '192.0.2.1' }
-        assert_equal(1, DB[:bans].count)
+      [
+        '192.0.2.1',
+        '2001:db8:1:1::1',
+        '::ffff:192.0.2.1',
+        '::192.0.2.1'
+      ].each do |ip|
+        DB.transaction(:rollback => :always) do
+          ban_id = prepare_ban(ip, 24)
+          get '/manage/bans', { 'q' => ip }
+          assert last_response.body.include?(ip), last_response.body
+        end
       end
     end
     
-    it 'creates IPv6 /64 block bans from posts' do
+    it 'creates bans from posts' do
       sid_as('mod')
       
-      DB.transaction(:rollback => :always) do
-        post '/manage/bans/update', {
-          'board' => 'test', 'thread' => 1, 'post' => 1,
-          'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
-        }, { 'REMOTE_ADDR' => '2001:db8:1:1::1' }
-        assert_equal(1, DB[:bans].count)
+      [
+        '192.0.2.1',
+        '2001:db8:1:1::1',
+        '::ffff:192.0.2.1',
+        '::192.0.2.1'
+      ].each do |ip|
+        DB.transaction(:rollback => :always) do
+          tid = insert_thread { |t, p| p[:ip] = ip }
+          
+          thread = DB[:threads].where(id: tid).get(:num)
+          
+          post '/manage/bans/update', {
+            'board' => 'test', 'thread' => thread, 'post' => 1,
+            'duration' => 24, 'reason' => 'test', 'csrf' => 'ok'
+          }
+          
+          assert last_response.body.include?(t(:done)), last_response.body
+          
+          ip_addr = IPAddr.new(ip)
+          
+          if ip_addr.ipv6?
+            if ip_addr.ipv4_compat? || ip_addr.ipv4_mapped?
+              ip_addr = ip_addr.native
+            else
+              ip_addr = ip_addr.mask(64)
+            end
+          end
+          
+          bin_ip = Sequel::SQL::Blob.new(ip_addr.hton)
+          assert DB[:bans].first(ip: bin_ip), ip
+        end
       end
     end
     
@@ -478,7 +540,16 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
-    it 'allows to edit existing active bans' do
+    it 'allows to edit existing bans' do
+      sid_as('mod')
+      DB.transaction(:rollback => :always) do
+        ban_id = prepare_ban('192.0.2.1', 24)
+        get "/manage/bans/update/#{ban_id}"
+        assert last_response.ok?, last_response.body
+      end
+    end
+    
+    it 'updates existing bans' do
       sid_as('mod')
       
       DB.transaction(:rollback => :always) do
@@ -502,6 +573,8 @@ class HiveSpec < MiniTest::Spec
         ['2001:db8:1:1::1', 0, '2001:db8:1:1::2', 'user-warned'],
         ['192.0.2.1', 3600, '192.0.2.2', t(:not_banned)],
         ['2001:db8:1:1::1', 3600, '2001:db8:1:2::1', t(:not_banned)],
+        ['::ffff:192.0.2.1', 3600, '::ffff:192.0.2.1', 'user-banned'],
+        ['::192.0.2.1', 3600, '::192.0.2.1', 'user-banned'],
       ]
       
       cases.each do |p|
@@ -547,8 +620,17 @@ class HiveSpec < MiniTest::Spec
         title_bottom = 'BottomPin'
         title_top = 'TopPin'
         
-        insert_thread(board_id: 1, title: title_bottom, pinned: 1)
-        insert_thread(board_id: 1, title: title_top, pinned: 2)
+        insert_thread do |t, p|
+          t[:board_id] = 1
+          t[:title] = title_bottom
+          t[:pinned] = 1
+        end
+        
+        insert_thread do |t, p|
+          t[:board_id] = 1
+          t[:title] = title_top
+          t[:pinned] = 2
+        end
         
         get '/test/'
         body = last_response.body
@@ -573,6 +655,74 @@ class HiveSpec < MiniTest::Spec
         
         assert last_response.body.include?(t(:done)), last_response.body
         assert_equal BBS::THREAD_LOCKED, DB[:threads].first(:id => 1)[:locked]
+      end
+    end
+  end
+  
+  describe '/manage/profile' do
+    it 'shows the profile of the currently logged in user' do
+      sid_as('mod')
+      get '/manage/profile'
+      assert last_response.ok?
+    end
+    
+    it 'lets users change their password' do
+      sid_as('mod')
+      new_pwd = 'newmod1337'
+      DB.transaction(:rollback => :always) do
+        post '/manage/profile', {
+          'old_pwd' => 'mod',
+          'new_pwd' => new_pwd,
+          'new_pwd_again' => new_pwd,
+          'csrf' => 'ok'
+        }
+        assert last_response.body.include?(t(:done)), last_response.body
+        user = DB[:users].first(:username => 'mod')
+        assert app.password_valid?(new_pwd, user[:password])
+      end
+    end
+    
+    it 'validates password complexity' do
+      sid_as('mod')
+      new_pwd = '1'
+      DB.transaction(:rollback => :always) do
+        post '/manage/profile', {
+          'old_pwd' => 'mod',
+          'new_pwd' => new_pwd,
+          'new_pwd_again' => new_pwd,
+          'csrf' => 'ok'
+        }
+        body = last_response.body
+        assert body.include?(t(:passwd_too_short)), body
+      end
+    end
+    
+    it 'validates password confirmation' do
+      sid_as('mod')
+      new_pwd = 'newmod1337'
+      DB.transaction(:rollback => :always) do
+        post '/manage/profile', {
+          'old_pwd' => 'mod',
+          'new_pwd' => new_pwd,
+          'new_pwd_again' => 'nope',
+          'csrf' => 'ok'
+        }
+        body = last_response.body
+        assert body.include?(t(:passwd_mismatch)), body
+      end
+    end
+    
+    it 'validates old password' do
+      sid_as('mod')
+      new_pwd = 'newmod1337'
+      DB.transaction(:rollback => :always) do
+        post '/manage/profile', {
+          'old_pwd' => 'nope',
+          'new_pwd' => new_pwd,
+          'new_pwd_again' => new_pwd,
+          'csrf' => 'ok'
+        }
+        assert last_response.forbidden?, last_response.body
       end
     end
   end

@@ -53,28 +53,43 @@ class HiveSpec < MiniTest::Spec
     post '/post', fields, rack_env
   end
   
-  def insert_thread(opts = {})
-    num = DB[:threads].max(:num).to_i + 1
-    
+  def insert_thread
     now = Time.now.utc.to_i
     
-    tid = DB[:threads].insert({
+    thread_opts = {
       board_id: 1,
-      num: num,
-      title: "Test #{num}",
       created_on: now,
       updated_on: now,
       post_count: 1
-    }.merge(opts))
+    }
     
-    DB[:posts].insert({
-      board_id: opts[:board_id] || 1,
-      thread_id: num,
+    post_opts = {
+      board_id: thread_opts[:board_id],
       num: 1,
-      created_on: now,
+      created_on: thread_opts[:created_on],
       ip: '127.0.0.1',
-      comment: "Test #{num}"
+      comment: "Test"
+    }
+    
+    yield thread_opts, post_opts if block_given?
+    
+    board_id = thread_opts[:board_id]
+    
+    thread_count = DB[:boards].where(id: board_id).get(:thread_count)
+    thread_num = thread_count + 1
+    
+    DB[:boards].where(id: board_id).update({
+      thread_count: thread_num
     })
+    
+    thread_opts[:num] = thread_num
+    thread_opts[:title] ||= "Test #{thread_num}"
+    
+    tid = DB[:threads].insert(thread_opts)
+    
+    post_opts[:thread_id] = tid
+    
+    DB[:posts].insert(post_opts)
     
     return tid
   end

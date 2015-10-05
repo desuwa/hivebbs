@@ -82,7 +82,7 @@ class HiveSpec < MiniTest::Spec
       assert last_response.body.include?(t(:comment_too_long))
     end
     
-    it 'fails if a field contains utf8 characters out of the BMP' do
+    it 'fails if a field contains utf8 characters outside of the BMP' do
       DB.transaction(:rollback => :always) do
         ['title', 'comment', 'author'].each do |field|
           p = { 'title' => 'test', 'author' => 'test', 'comment' => 'test' }
@@ -174,7 +174,7 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
-    describe 'Banning' do
+    describe 'Posting from banned IPs' do
       it 'disallows posting from a banned IPv4' do
         DB.transaction(:rollback => :always) do
           prepare_ban('192.0.2.1')
@@ -194,6 +194,26 @@ class HiveSpec < MiniTest::Spec
             { 'REMOTE_ADDR' => '2001:db8:1:1::2' }
           )
           assert last_response.redirection?
+        end
+      end
+      
+      it 'handles IPv4-mapped IPv6 addresses' do
+        DB.transaction(:rollback => :always) do
+          prepare_ban('::ffff:192.0.2.1')
+          make_post(
+            { 'thread' => '1', 'comment' => 'test' },
+            { 'REMOTE_ADDR' => '::ffff:192.0.2.1' }
+          )
+          assert last_response.redirection?, 'IPv4-mapped IPv6'
+        end
+        
+        DB.transaction(:rollback => :always) do
+          prepare_ban('::192.0.2.1')
+          make_post(
+            { 'thread' => '1', 'comment' => 'test' },
+            { 'REMOTE_ADDR' => '::192.0.2.1' }
+          )
+          assert last_response.redirection?, 'IPv4-compatible IPv6'
         end
       end
     end

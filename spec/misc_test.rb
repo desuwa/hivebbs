@@ -30,4 +30,18 @@ class HiveTest < MiniTest::Test
     
     assert_equal([:first, :previous, 2, 3], pages_as_ary(3, 3, 2))
   end
+  
+  def test_tripcodes
+    assert APP.make_tripcode('test')
+  end
+  
+  def test_pretty_bytesize
+    {
+      1023 => '1023 B',
+      1024 => '1 KiB',
+      10250 => '10 KiB',
+      1048576 => '1.0 MiB',
+      10485770 => '10.0 MiB'
+    }.each { |k, v| assert_equal v, APP.pretty_bytesize(k) }
+  end
 end

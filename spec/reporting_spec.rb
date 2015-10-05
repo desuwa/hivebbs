@@ -13,13 +13,18 @@ class HiveSpec < MiniTest::Spec
   
   describe 'Reporting' do
     it 'lets users request post deletion' do
+      get '/report/test/1/1'
+      assert last_response.ok?, last_response.body
+    end
+    
+    it 'creates reports for posts' do
       DB.transaction(:rollback => :always) do
         post '/report/test/1/1'
         count = DB[:reports].count
         assert_equal(1, count)
       end
     end
-    
+        
     it 'can be disabled' do
       CONFIG[:post_reporting] = false
       DB.transaction(:rollback => :always) do
