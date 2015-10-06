@@ -15,8 +15,8 @@ class HiveSpec < MiniTest::Spec
         '/users', '/users/create', '/users/update/1'
       ],
       :post => [
-        '/boards/create', '/boards/update/1', '/boards/delete/1',
-        '/users/create', '/users/update/1', '/users/delete/1'
+        '/boards/create', '/boards/update', '/boards/delete',
+        '/users/create', '/users/update', '/users/delete'
       ]
     },
     :mod => {
@@ -25,11 +25,16 @@ class HiveSpec < MiniTest::Spec
         '/profile'
       ],
       :post => [
-        '/bans/update', '/boards/update/1', '/profile',
+        '/bans/update', '/profile',
         '/posts/delete', '/reports/delete', '/threads/flags'
       ]
     }
   }
+  
+  def setup
+    HiveSpec.reset_board_dir
+    HiveSpec.reset_config
+  end
   
   def auth(u, p = nil, csrf = '123')
     set_cookie "auth_csrf=#{csrf}" if csrf
@@ -182,9 +187,9 @@ class HiveSpec < MiniTest::Spec
           created_on: Time.now.utc.to_i
         })
         
-        post "/manage/users/update/#{user_id}", {
+        post "/manage/users/update", {
           'username' => 'testupdateuser2',
-          'level' => BBS::USER_LEVELS[:mod],
+          'level' => BBS::USER_LEVELS[:mod], 'id' => user_id,
           'csrf' => 'ok'
         }
         
@@ -203,8 +208,9 @@ class HiveSpec < MiniTest::Spec
           created_on: Time.now.utc.to_i
         })
         
-        post "/manage/users/delete/#{user_id}", {
-          'confirm_keyword' => t(:confirm_keyword), 'csrf' => 'ok'
+        post "/manage/users/delete", {
+          'confirm_keyword' => t(:confirm_keyword),
+          'id' => user_id, 'csrf' => 'ok'
         }
         
         assert_nil DB[:users].first(:id => user_id)
@@ -237,14 +243,13 @@ class HiveSpec < MiniTest::Spec
           created_on: Time.now.utc.to_i
         })
         
-        post "/manage/boards/update/#{board_id}", {
-          'slug' => 'testing', 'title' => 'Test', 'config' => '', 'csrf' => 'ok'
+        post "/manage/boards/update", {
+          'slug' => 'testing', 'title' => 'Test', 'config' => '{}',
+          'id' => board_id, 'csrf' => 'ok',
         }
         
-        board = DB[:boards].first(:id => board_id)
-        
-        assert board != nil
-        assert board[:slug] == 'testing'
+        board = DB[:boards].first(:id => board_id, :slug => 'testing')
+        assert board, last_response.body
       end
     end
   
@@ -265,8 +270,9 @@ class HiveSpec < MiniTest::Spec
         
         FileUtils.mkdir(board_dir)
         
-        post "/manage/boards/delete/#{board_id}", {
-          'confirm_keyword' => t(:confirm_keyword), 'csrf' => 'ok'
+        post "/manage/boards/delete", {
+          'confirm_keyword' => t(:confirm_keyword),
+          'id' => board_id, 'csrf' => 'ok'
         }
         
         assert_nil DB[:boards].first(:id => board_id)

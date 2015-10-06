@@ -940,7 +940,7 @@ class BBS < Sinatra::Base
     erb :manage_boards_edit
   end
   
-  post %r{/manage/boards/(create|update)(?:/([0-9]+))?} do |action, board_id|
+  post %r{/manage/boards/(create|update)} do |action|
     validate_csrf_token
     
     forbidden unless user = get_user_session
@@ -970,7 +970,7 @@ class BBS < Sinatra::Base
     }
     
     if action == 'update'
-      affected = DB[:boards].where(:id => board_id.to_i).update(board)
+      affected = DB[:boards].where(:id => params['id'].to_i).update(board)
       failure t(:bad_board) unless affected > 0
     else
       board[:created_on] = Time.now.utc.to_i
@@ -989,7 +989,7 @@ class BBS < Sinatra::Base
     success t(:done), '/manage/boards'
   end
   
-  post '/manage/boards/delete/:id' do
+  post '/manage/boards/delete' do
     validate_csrf_token
     
     forbidden unless user = get_user_session
@@ -1001,9 +1001,7 @@ class BBS < Sinatra::Base
       failure t(:bad_confirm_keyword)
     end
     
-    board_id = params[:id].to_i
-    
-    board = DB[:boards].first(:id => board_id)
+    board = DB[:boards].first(:id => params['id'].to_i)
     
     failure t(:bad_board) unless board
     
@@ -1044,7 +1042,7 @@ class BBS < Sinatra::Base
     erb :manage_users_edit
   end
   
-  post %r{/manage/users/(create|update)(?:/([0-9]+))?} do |action, user_id|
+  post %r{/manage/users/(create|update)} do |action|
     validate_csrf_token
     
     forbidden unless user = get_user_session
@@ -1068,9 +1066,7 @@ class BBS < Sinatra::Base
     end
     
     if action == 'update'
-      user_id = user_id.to_i
-      
-      affected = DB[:users].where(:id => user_id).update(new_user)
+      affected = DB[:users].where(:id => params['id'].to_i).update(new_user)
       
       failure t(:bad_user_id) unless affected > 0
     else
@@ -1086,7 +1082,7 @@ class BBS < Sinatra::Base
     end
   end
 
-  post '/manage/users/delete/:id' do
+  post '/manage/users/delete' do
     validate_csrf_token
     
     forbidden unless user = get_user_session
@@ -1098,9 +1094,7 @@ class BBS < Sinatra::Base
       failure t(:bad_confirm_keyword)
     end
     
-    user_id = params[:id].to_i
-    
-    user = DB[:users].first(:id => user_id)
+    user = DB[:users].first(:id => params['id'].to_i)
     
     failure t(:bad_user_id) unless user
     
