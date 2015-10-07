@@ -342,6 +342,8 @@ header {
 footer {
   text-align: center;
   margin: 40px 0 20px 0;
+  font-size: 12px;
+  line-height: 1.75em;
 }
 
 #post-form table {
