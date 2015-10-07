@@ -5,6 +5,11 @@ body, html {
   background: #FFFAFA;
 }
 
+html {
+  position: relative;
+  min-height: 100%;
+}
+
 body {
   font: 16px
     Sylfaen,
@@ -14,6 +19,7 @@ body {
     'Times New Roman',
     serif;
   color: #232c33;
+  margin-bottom: 60px;
 }
 
 pre {
@@ -341,9 +347,13 @@ header {
 
 footer {
   text-align: center;
-  margin: 40px 0 20px 0;
   font-size: 12px;
   line-height: 1.75em;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 30px;
+  width: 100%;
 }
 
 #post-form table {
