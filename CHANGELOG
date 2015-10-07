@@ -1,3 +1,16 @@
+0.5.0 - 2015-10-07
+  * Database schema changed. Run rake db:migrate to update.
+  * It is now possible to delete user accounts.
+  * Temporary uploaded files are now cleaned up after each request.
+  * Thread pinning and locking.
+  * Post Menu: contains reporting and moderation buttons.
+  * The thread list can now be paginated:
+    - new config option: threads_per_page. nil disables pagination.
+  * Thread pruning can now be disabled by setting thread_limit to nil.
+  * config/config.rb is now config/config.sample.rb
+  * New rake tasks: jshint, puma:halt.
+  * rake puma:stop now stops puma gracefully so it exits with a 0 status.
+
 0.4.2 - 2015-03-02
   * Proper /banned page
   * Fixed report queue manager for postgresql
