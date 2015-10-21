@@ -78,10 +78,13 @@ form, p, ul, ol, table { margin-bottom: 1em; }
 .tainted:after { content: '*'; }
 
 .aa {
-  line-height: 17px;
   white-space: pre;
-  font-family: 'IPAMonaPGothic', 'Mona', 'MS PGothic';
+  font: 16px/17px 'IPAMonaPGothic', 'Mona', 'MS PGothic', monospace;
   overflow: auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background-color: transparent;
 }
 
 .table  {
