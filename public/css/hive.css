@@ -341,7 +341,9 @@ header {
 
 .rc {
   color: #232c33;
-  margin-right: 4px;
+  width: 10px;
+  display: inline-block;
+  text-align: center;
 }
 
 .pc { margin-left: 4px; }
