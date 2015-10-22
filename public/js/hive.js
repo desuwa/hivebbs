@@ -616,7 +616,7 @@ var Hive = {
     $.xhr('POST', '/manage/threads/flags',
       {
         onload: Hive.onPinThreadLoaded,
-        hiveValue: value
+        hiveValue: +value
       },
       params.join('&')
     );
@@ -636,7 +636,7 @@ var Hive = {
   },
   
   buildModCtrl: function(el) {
-    var cnt, ctrl, path, board, thread, post_id;
+    var label, cnt, ctrl, path, board, thread, post_id;
     
     board = $.body.getAttribute('data-board');
     thread = $.body.getAttribute('data-thread');
@@ -668,14 +668,16 @@ var Hive = {
     cnt.appendChild(ctrl);
     
     if (post_id === '1') {
+      label = $.body.hasAttribute('data-pinned') ? 'Change Pin' : 'Pin';
       ctrl = $.el('li');
       ctrl.innerHTML =
-        '<span class="link-span" data-cmd="pin-thread">Toggle Pin</span>';
+        '<span class="link-span" data-cmd="pin-thread">' + label + '</span>';
       cnt.appendChild(ctrl);
       
+      label = $.body.hasAttribute('data-locked') ? 'Unlock' : 'Lock';
       ctrl = $.el('li');
       ctrl.innerHTML =
-        '<span class="link-span" data-cmd="lock-thread">Toggle Lock</span>';
+        '<span class="link-span" data-cmd="lock-thread">' + label + '</span>';
       cnt.appendChild(ctrl);
    }
     
