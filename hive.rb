@@ -176,22 +176,6 @@ class BBS < Sinatra::Base
     
     is_new_thread = thread_num == 0
     
-    if is_new_thread
-      throttle = now - cfg(:delay_thread, @board_cfg)
-      
-      last_post = DB[:posts].select(1).reverse_order(:id)
-        .first('ip = ? AND num = 1 AND created_on > ?', request.ip, throttle)
-    else
-      throttle = now - cfg(:delay_reply, @board_cfg)
-      
-      last_post = DB[:posts].select(1).reverse_order(:id)
-        .first('ip = ? AND created_on > ?', request.ip, throttle)
-    end
-    
-    if last_post
-      failure t(:fast_post)
-    end
-    
     #
     # Ban checks
     #
@@ -302,26 +286,25 @@ class BBS < Sinatra::Base
       if !thread
         failure t(:bad_thread)
       end
-      
-      if thread[:locked] > 0
-        failure t(:thread_locked)
-      end
-      
-      if thread[:post_count] >= cfg(:post_limit, @board_cfg)
-        failure t(:thread_full)
-      end
     end
     
-    if file = params['tegaki']
-      file = file.to_s
-      
-      if file.size > cfg(:tegaki_data_limit, @board_cfg)
-        failure t(:file_size_too_big)
+    #
+    # Files
+    #
+    if cfg(:file_uploads, @board_cfg)
+      if file = params['tegaki']
+        file = file.to_s
+        
+        if file.size > cfg(:tegaki_data_limit, @board_cfg)
+          failure t(:file_size_too_big)
+        end
+        
+        file = decode_tegaki_upload(file)
+      else
+        file = params['file']
       end
-      
-      file = decode_tegaki_upload(file)
     else
-      file = params['file']
+      file = nil
     end
     
     if has_file = file.is_a?(Hash)
@@ -356,6 +339,33 @@ class BBS < Sinatra::Base
       failure t(:comment_empty)
     end
     
+    #
+    # Cooldowns & thread lock checks
+    #
+    if is_new_thread
+      throttle = now - cfg(:delay_thread, @board_cfg)
+      
+      last_post = DB[:posts].select(1).reverse_order(:id)
+        .first('ip = ? AND num = 1 AND created_on > ?', request.ip, throttle)
+    else
+      throttle = now - cfg(:delay_reply, @board_cfg)
+      
+      last_post = DB[:posts].select(1).reverse_order(:id)
+        .first('ip = ? AND created_on > ?', request.ip, throttle)
+      
+      if thread[:locked] > 0
+        failure t(:thread_locked)
+      end
+      
+      if thread[:post_count] >= cfg(:post_limit, @board_cfg)
+        failure t(:thread_full)
+      end
+    end
+    
+    if last_post
+      failure t(:fast_post)
+    end
+    
     begin
       capcode = nil
       
@@ -378,24 +388,25 @@ class BBS < Sinatra::Base
         author = tripcode = nil
       end
       
+      thread_count = board[:thread_count]
+      
       DB.transaction do
         if is_new_thread
+          DB[:boards]
+            .where(:id => board[:id])
+            .update(:thread_count => Sequel.+(:thread_count, 1))
+          
+          thread_count = DB[:boards].where(id: board[:id]).get(:thread_count)
+          post_count = 1
+          
           thread = {}
           thread[:board_id] = board[:id]
-          thread[:num] = board[:thread_count] + 1
+          thread[:num] = thread_count
           thread[:created_on] = now
           thread[:updated_on] = now
           thread[:title] = title
           
           thread[:id] = DB[:threads].insert(thread)
-          
-          thread[:post_count] = 1
-          
-          DB[:boards]
-            .where(:id => board[:id])
-            .update(:thread_count => Sequel.+(:thread_count, 1))
-          
-          board[:thread_count] += 1
         else
           new_vals = {
             :post_count => Sequel.+(:post_count, 1)
@@ -407,13 +418,13 @@ class BBS < Sinatra::Base
           
           DB[:threads].where(:id => thread[:id]).update(new_vals)
           
-          thread[:post_count] += 1
+          post_count = DB[:threads].where(id: thread[:id]).get(:post_count)
         end
         
         post = {}
         post[:board_id] = board[:id]
         post[:thread_id] = thread[:id]
-        post[:num] = thread[:post_count]
+        post[:num] = post_count
         post[:created_on] = now
         post[:author] = author
         post[:tripcode] = tripcode
@@ -466,7 +477,7 @@ class BBS < Sinatra::Base
     
     thread_limit = cfg(:thread_limit, @board_cfg)
     
-    if is_new_thread && thread_limit && board[:thread_count] > thread_limit
+    if is_new_thread && thread_limit && thread_count > thread_limit
       lt = DB[:threads]
         .where(:board_id => board[:id])
         .reverse_order(:updated_on)
