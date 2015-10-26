@@ -1,3 +1,16 @@
+0.5.1 - 2015-10-26
+  * Database schema changed. Run rake db:migrate to update.
+  * Fix thread pruning deleting pinned threads.
+  * hive_markup gem updated:
+    - run `gem update hive_markup` to update
+    - ascii art blocks now use <pre> tags.
+    - code blocks now have `code` as CSS class.
+  * Style pinned threads differently in the thread list.
+  * Change Pin/Lock buttons in the Post Menu:
+    - `Toggle Pin` is now `Pin` and `Change Pin`
+    - `Toggle Lock` is now `Lock` and `Unlock`
+  * Fix the `file_uploads` not preventing files from being uploaded.
+
 0.5.0 - 2015-10-07
   * Database schema changed. Run rake db:migrate to update.
   * It is now possible to delete user accounts.
