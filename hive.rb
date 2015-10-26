@@ -388,25 +388,22 @@ class BBS < Sinatra::Base
         author = tripcode = nil
       end
       
-      thread_count = board[:thread_count]
-      
       DB.transaction do
         if is_new_thread
           DB[:boards]
             .where(:id => board[:id])
             .update(:thread_count => Sequel.+(:thread_count, 1))
           
-          thread_count = DB[:boards].where(id: board[:id]).get(:thread_count)
-          post_count = 1
-          
           thread = {}
           thread[:board_id] = board[:id]
-          thread[:num] = thread_count
+          thread[:num] = DB[:boards].where(id: board[:id]).get(:thread_count)
           thread[:created_on] = now
           thread[:updated_on] = now
           thread[:title] = title
           
           thread[:id] = DB[:threads].insert(thread)
+          
+          post_num = 1
         else
           new_vals = {
             :post_count => Sequel.+(:post_count, 1)
@@ -418,13 +415,13 @@ class BBS < Sinatra::Base
           
           DB[:threads].where(:id => thread[:id]).update(new_vals)
           
-          post_count = DB[:threads].where(id: thread[:id]).get(:post_count)
+          post_num = DB[:threads].where(id: thread[:id]).get(:post_count)
         end
         
         post = {}
         post[:board_id] = board[:id]
         post[:thread_id] = thread[:id]
-        post[:num] = post_count
+        post[:num] = post_num
         post[:created_on] = now
         post[:author] = author
         post[:tripcode] = tripcode
@@ -477,21 +474,17 @@ class BBS < Sinatra::Base
     
     thread_limit = cfg(:thread_limit, @board_cfg)
     
-    if is_new_thread && thread_limit && thread_count > thread_limit
-      lt = DB[:threads]
-        .where(:board_id => board[:id])
-        .reverse_order(:updated_on)
-        .limit(1, cfg(:thread_limit, @board_cfg) - 1)
-        .first
+    if is_new_thread && thread_limit &&
+      DB[:threads].where(board_id: board[:id]).count > thread_limit
       
-      if lt
-        overflow = DB[:threads]
-          .select(:id, :board_id, :num)
-          .where('board_id = ? AND updated_on < ?', board[:id], lt[:updated_on])
-          .all
-        
-        delete_threads(overflow) unless overflow.empty?
-      end
+      overflow = DB[:threads]
+        .select(:id, :board_id, :num)
+        .where(:board_id => board[:id])
+        .reverse_order(:pinned, :updated_on)
+        .limit(nil, cfg(:thread_limit, @board_cfg))
+        .all
+      
+      delete_threads(overflow) unless overflow.empty?
     end
     
     @thread = thread

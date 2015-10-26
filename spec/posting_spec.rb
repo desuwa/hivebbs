@@ -135,10 +135,19 @@ class HiveSpec < MiniTest::Spec
     end
     
     it 'prunes inactive threads when a new thread is made' do
-      CONFIG[:thread_limit] = 1
+      CONFIG[:thread_limit] = 2
       DB.transaction(:rollback => :always) do
+        t1 = insert_thread do |t, p|
+          t[:pinned] = 1
+          t[:updated_on] = Time.now.utc.to_i - 99999
+        end
+        
         make_post({ 'title' => 'test', 'comment' => 'test' })
-        DB[:threads].first(:id => 1).must_be_nil
+        
+        assert_equal(1, DB[:threads].where(:id => t1).count)
+        assert_equal(2, DB[:threads].where(:board_id => 1).count)
+        
+        File.exist?("#{app.settings.files_dir}/1/1").must_equal false, 'files'
       end
     end
     
@@ -159,18 +168,6 @@ class HiveSpec < MiniTest::Spec
         th = DB[:threads].first(:id => 1)
         th[:post_count].must_equal(post_count + 1, "Post didn't go through")
         th[:updated_on].must_equal updated_on
-      end
-    end
-    
-    it 'prunes stale threads' do
-      CONFIG[:thread_limit] = 1
-      DB.transaction(:rollback => :always) do
-        make_post({ 'title' => 'test-overflow', 'comment' => 'test' })
-        
-        assert_equal(0, DB[:threads].where(:id => 1).count)
-        assert_equal(0, DB[:posts].where(:thread_id => 1).count)
-        
-        File.exist?("#{app.settings.files_dir}/1/1").must_equal false, 'files'
       end
     end
     
