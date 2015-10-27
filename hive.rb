@@ -313,15 +313,12 @@ class BBS < Sinatra::Base
       file_hash = OpenSSL::Digest::MD5.file(file[:tempfile].path).hexdigest
       
       if is_new_thread
-        if dup_file = DB[:posts].first(:file_hash => file_hash, :num => 1)
+        if DB[:posts].first(:file_hash => file_hash, :num => 1)
           failure t(:dup_file_thread)
         end
       else
-        dup_file = DB[:posts]
-          .select(1)
+        failure t(:dup_file_reply) if DB[:posts].select(1)
           .first(:file_hash => file_hash, :thread_id => thread[:id])
-        
-        failure t(:dup_file_reply) if dup_file
       end
       
       file_ext = file[:filename].scan(/\.([a-z0-9]+$)/i).flatten.join.downcase
