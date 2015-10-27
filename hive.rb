@@ -340,30 +340,18 @@ class BBS < Sinatra::Base
     end
     
     #
-    # Cooldowns & thread lock checks
+    # Cooldowns
     #
     if is_new_thread
       throttle = now - cfg(:delay_thread, @board_cfg)
       
-      last_post = DB[:posts].select(1).reverse_order(:id)
+      failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
         .first('ip = ? AND num = 1 AND created_on > ?', request.ip, throttle)
     else
       throttle = now - cfg(:delay_reply, @board_cfg)
       
-      last_post = DB[:posts].select(1).reverse_order(:id)
+      failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
         .first('ip = ? AND created_on > ?', request.ip, throttle)
-      
-      if thread[:locked] > 0
-        failure t(:thread_locked)
-      end
-      
-      if thread[:post_count] >= cfg(:post_limit, @board_cfg)
-        failure t(:thread_full)
-      end
-    end
-    
-    if last_post
-      failure t(:fast_post)
     end
     
     begin
@@ -390,21 +378,33 @@ class BBS < Sinatra::Base
       
       DB.transaction do
         if is_new_thread
+          board = DB[:boards].for_update.where(id: board[:id]).first
+
           DB[:boards]
             .where(:id => board[:id])
             .update(:thread_count => Sequel.+(:thread_count, 1))
           
           thread = {}
           thread[:board_id] = board[:id]
-          thread[:num] = DB[:boards].where(id: board[:id]).get(:thread_count)
+          thread[:num] = board[:thread_count] + 1
           thread[:created_on] = now
           thread[:updated_on] = now
           thread[:title] = title
           
           thread[:id] = DB[:threads].insert(thread)
           
-          post_num = 1
+          thread[:post_count] = 1
         else
+          thread = DB[:threads].for_update.where(id: thread[:id]).first
+          
+          if thread[:locked] > 0
+            failure t(:thread_locked)
+          end
+          
+          if thread[:post_count] >= cfg(:post_limit, @board_cfg)
+            failure t(:thread_full)
+          end
+          
           new_vals = {
             :post_count => Sequel.+(:post_count, 1)
           }
@@ -415,13 +415,13 @@ class BBS < Sinatra::Base
           
           DB[:threads].where(:id => thread[:id]).update(new_vals)
           
-          post_num = DB[:threads].where(id: thread[:id]).get(:post_count)
+          thread[:post_count] += 1
         end
         
         post = {}
         post[:board_id] = board[:id]
         post[:thread_id] = thread[:id]
-        post[:num] = post_num
+        post[:num] = thread[:post_count]
         post[:created_on] = now
         post[:author] = author
         post[:tripcode] = tripcode
