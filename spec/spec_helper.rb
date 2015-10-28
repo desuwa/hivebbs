@@ -41,6 +41,11 @@ class HiveSpec < MiniTest::Spec
     BBS::STRINGS[str]
   end
   
+  def sid_as(group)
+    set_cookie "sid=#{group}"
+    set_cookie "csrf=ok"
+  end
+  
   def make_post(fields = {}, rack_env = {})
     fields['board'] = 'test'
     

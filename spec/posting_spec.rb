@@ -111,6 +111,19 @@ class HiveSpec < MiniTest::Spec
       end
     end
     
+    it 'lets capcoded posts bypass cooldowns' do
+      sid_as('admin')
+      
+      DB.transaction(:rollback => :always) do
+        make_post({ 'thread' => '1', 'comment' => 'test' })
+        CONFIG[:delay_reply] = 100
+        make_post({
+          'thread' => '1', 'comment' => 'test', 'author' => '##capcode_admin'
+        })
+        assert last_response.body.include?('http-equiv="Refresh"')
+      end
+    end
+    
     it 'fails if the honeypot field is not empty' do
       DB.transaction(:rollback => :always) do
         make_post({ 'title' => 'test', 'email' => '1', 'comment' => 'test' })

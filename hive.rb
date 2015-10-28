@@ -336,21 +336,6 @@ class BBS < Sinatra::Base
       failure t(:comment_empty)
     end
     
-    #
-    # Cooldowns
-    #
-    if is_new_thread
-      throttle = now - cfg(:delay_thread, @board_cfg)
-      
-      failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
-        .first('ip = ? AND num = 1 AND created_on > ?', request.ip, throttle)
-    else
-      throttle = now - cfg(:delay_reply, @board_cfg)
-      
-      failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
-        .first('ip = ? AND created_on > ?', request.ip, throttle)
-    end
-    
     begin
       capcode = nil
       
@@ -369,8 +354,12 @@ class BBS < Sinatra::Base
         end
       end
       
-      if cfg(:forced_anon, @board_cfg) && !capcode
-        author = tripcode = nil
+      if !capcode
+        if cfg(:forced_anon, @board_cfg)
+          author = tripcode = nil
+        end
+        
+        validate_cooldowns(is_new_thread)
       end
       
       DB.transaction do

@@ -48,11 +48,6 @@ class HiveSpec < MiniTest::Spec
     end
   end
   
-  def sid_as(group)
-    set_cookie "sid=#{group}"
-    set_cookie "csrf=ok"
-  end
-  
   describe '/manage/auth' do
     it 'shows the login form' do
       get '/manage/auth'

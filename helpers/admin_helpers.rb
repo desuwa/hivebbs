@@ -45,6 +45,20 @@ class BBS < Sinatra::Base
     halt if params['email'] && !params['email'].empty?
   end
   
+  def validate_cooldowns(is_new_thread)
+    if is_new_thread
+      failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
+        .first('ip = ? AND num = 1 AND created_on > ?'.freeze,
+          request.ip, Time.now.utc.to_i - cfg(:delay_thread, @board_cfg)
+        )
+    else
+      failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
+        .first('ip = ? AND created_on > ?'.freeze,
+          request.ip, Time.now.utc.to_i - cfg(:delay_reply, @board_cfg)
+        )
+    end
+  end
+  
   def verify_captcha
     resp_token = params['g-recaptcha-response'.freeze]
     
