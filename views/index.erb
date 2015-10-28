@@ -10,7 +10,7 @@
 <h1 id="app-title"><%= cfg(:app_name) %></h1>
 <ul id="boards" class="list section">
   <% @boards.each do |board| %>
-  <li><span class="rc">»</span><a href="/<%= board[:slug] %>/"><%= board[:title] %></a></li>
+  <li><span class="rc">»</span> <a href="/<%= board[:slug] %>/"><%= board[:title] %></a></li>
   <% end %>
 </ul>
 </div>
