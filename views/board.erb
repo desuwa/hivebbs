@@ -24,7 +24,7 @@ time_format = t(:time_format)
   <li>This board has no threads.</li>
   <% else %>
   <% @threads.each do |thread| %>
-    <li><a class="rc" href="/<%= @board[:slug] %>/read/<%= thread[:num] %>"><% if thread[:pinned] > 0 %>●<% else %>»<% end %></a> <a href="/<%= @board[:slug] %>/read/<%= thread[:num] %>"><%= thread[:title] %></a><span class="pc">(<%= thread[:post_count] %>)</span></li>
+    <li><a class="rc" href="/<%= @board[:slug] %>/read/<%= thread[:num] %>"><% if thread[:pinned] > 0 %>●<% else %>»<% end %></a> <a href="/<%= @board[:slug] %>/read/<%= thread[:num] %>"><%= thread[:title] %></a> <span class="pc">(<%= thread[:post_count] %>)</span></li>
   <% end %>
   <% end %>
 </ul>
