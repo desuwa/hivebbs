@@ -94,6 +94,8 @@ class BBS < Sinatra::Base
     if threads_per_page
       thread_count = DB[:threads].where(:board_id => @board[:id]).count
       
+      thread_count = 1 if thread_count == 0
+      
       if !page
         page = 1
       else
