@@ -15,7 +15,7 @@
   threads_per_page: 50,
   
   author_length: 50,
-  title_length: 70,
+  title_length: 100,
   comment_length: 5000,
   comment_lines: 100,
   
