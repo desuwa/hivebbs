@@ -78,7 +78,7 @@ class BBS < Sinatra::Base
     erb :index
   end
   
-  get %r{^/([-_0-9a-z]+)/([0-9]+)?$} do |slug, page|
+  get %r{/([-_0-9a-z]+)/([0-9]+)?} do |slug, page|
     @board = DB[:boards].where(:slug => slug).first
     
     halt 404 if !@board
@@ -129,7 +129,7 @@ class BBS < Sinatra::Base
     erb :board
   end
   
-  get %r{^/([-_0-9a-z]+)/read/([0-9]+)$} do |slug, num|
+  get %r{/([-_0-9a-z]+)/read/([0-9]+)} do |slug, num|
     @board = DB[:boards].first(:slug => slug)
     
     halt 404 if !@board
@@ -193,7 +193,7 @@ class BBS < Sinatra::Base
     
     ip_addr = Sequel::SQL::Blob.new(ip_addr.hton)
     
-    if DB[:bans].first('ip = ? AND active = ?', ip_addr, true)
+    if DB[:bans].first(Sequel.lit('ip = ? AND active = ?', ip_addr, true))
       redirect '/banned'
     end
     
@@ -490,7 +490,7 @@ class BBS < Sinatra::Base
     ip_addr = request.ip
     
     if DB[:reports].select(1).reverse_order(:id)
-      .first('ip = ? AND created_on > ?', ip_addr, throttle)
+      .first(Sequel.lit('ip = ? AND created_on > ?', ip_addr, throttle))
       failure t(:fast_report)
     end
     
@@ -524,7 +524,7 @@ class BBS < Sinatra::Base
     
     ip_addr = request.ip
     
-    if DB[:reports].first('ip = ? AND post_id = ?', ip_addr, post[:id])
+    if DB[:reports].first(Sequel.lit('ip = ? AND post_id = ?', ip_addr, post[:id]))
       failure t(:duplicate_report)
     end
     
@@ -532,7 +532,7 @@ class BBS < Sinatra::Base
     throttle = now - cfg(:delay_report)
     
     if DB[:reports].select(1).reverse_order(:id)
-      .first('ip = ? AND created_on > ?', ip_addr, throttle)
+      .first(Sequel.lit('ip = ? AND created_on > ?', ip_addr, throttle))
       failure t(:fast_report)
     end
     
@@ -636,7 +636,7 @@ class BBS < Sinatra::Base
     
     if !@bans.empty?
       DB[:bans]
-        .where('ip = ? AND active = ? AND expires_on <= ?', ip_addr, true, now)
+        .where(Sequel.lit('ip = ? AND active = ? AND expires_on <= ?', ip_addr, true, now))
         .update(:active => false)
     end
     
@@ -664,10 +664,10 @@ class BBS < Sinatra::Base
     
     @ban = DB[:bans]
       .select_all(:bans)
-      .select_append(:c__username___creator_name, :u__username___updater_name)
-      .left_join(:users___c, :id => :bans__created_by)
-      .left_join(:users___u, :id => :bans__updated_by)
-      .first(:bans__id => params[:id].to_i)
+      .select_append(Sequel[:c][:username].as(:creator_name), Sequel[:u][:username].as(:updater_name))
+      .left_join(Sequel.as(:users, :c), :id => Sequel[:bans][:created_by])
+      .left_join(Sequel.as(:users, :u), :id => Sequel[:bans][:updated_by])
+      .first(Sequel[:bans][:id] => params[:id].to_i)
     
     halt 404 if !@ban
     
@@ -771,7 +771,7 @@ class BBS < Sinatra::Base
       .select_all(:bans)
       .select_append(:username)
       .left_join(:users, :id => :id)
-      .reverse_order(:bans__id)
+      .reverse_order(Sequel[:bans][:id])
     
     if params['q']
       @ip = params['q'].to_s
@@ -837,9 +837,9 @@ class BBS < Sinatra::Base
     
     now = Time.now.utc.to_i
     
-    DB[:sessions].where('created_on <= ?', now - cfg(:auth_ttl)).delete
+    DB[:sessions].where(Sequel.lit('created_on <= ?', now - cfg(:auth_ttl))).delete
     
-    DB[:sessions].where('updated_on <= ?', now - cfg(:auth_idle)).delete
+    DB[:sessions].where(Sequel.lit('updated_on <= ?', now - cfg(:auth_idle))).delete
     
     DB[:sessions].insert({
       sid: hash_session_id(new_sid),
@@ -883,10 +883,10 @@ class BBS < Sinatra::Base
       .from_self(:alias => :reports)
       .select_all(:reports, :posts)
       .select_append(
-        :threads__title,
-        :threads__post_count,
-        :threads__num___thread_num,
-        :boards__slug
+        Sequel[:threads][:title],
+        Sequel[:threads][:post_count],
+        Sequel[:threads][:num].as(:thread_num),
+        Sequel[:boards][:slug]
       )
       .inner_join(:posts, :id => :post_id)
       .inner_join(:threads, :id => :thread_id)

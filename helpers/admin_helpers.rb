@@ -48,13 +48,13 @@ class BBS < Sinatra::Base
   def validate_cooldowns(is_new_thread)
     if is_new_thread
       failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
-        .first('ip = ? AND num = 1 AND created_on > ?'.freeze,
-          request.ip, Time.now.utc.to_i - cfg(:delay_thread, @board_cfg)
+        .first(Sequel.lit('ip = ? AND num = 1 AND created_on > ?',
+          request.ip, Time.now.utc.to_i - cfg(:delay_thread, @board_cfg))
         )
     else
       failure t(:fast_post) if DB[:posts].select(1).reverse_order(:id)
-        .first('ip = ? AND created_on > ?'.freeze,
-          request.ip, Time.now.utc.to_i - cfg(:delay_reply, @board_cfg)
+        .first(Sequel.lit('ip = ? AND created_on > ?',
+          request.ip, Time.now.utc.to_i - cfg(:delay_reply, @board_cfg))
         )
     end
   end
@@ -198,7 +198,7 @@ class BBS < Sinatra::Base
     
     now = Time.now.utc.to_i
     
-    DB[:auth_fails].where('created_on < ?', now - cfg(:delay_auth)).delete
+    DB[:auth_fails].where(Sequel.lit('created_on < ?', now - cfg(:delay_auth))).delete
     
     if DB[:auth_fails].first(:ip => request.ip)
       failure t(:fast_auth), 403
