@@ -1,3 +1,4 @@
+
 require 'rake/testtask'
 
 Encoding.default_external = 'UTF-8'
@@ -9,11 +10,13 @@ task :test => 'test:all'
 namespace :test do
   TestTask.new(:all) do |t|
     t.description = 'Run all tests'
+    t.warning = false
     t.test_files = FileList['spec/*_spec.rb', 'spec/*_test.rb']
   end
   
   TestTask.new(:nomedia) do |t|
     t.description = 'Skip all upload handlers tests'
+    t.warning = false
     t.test_files = Dir['spec/*_spec.rb', 'spec/*_test.rb'].reject do |f|
       /imagemagic|ffmpeg/ =~f
     end
@@ -21,6 +24,7 @@ namespace :test do
   
   TestTask.new(:noffmpeg) do |t|
     t.description = 'Skip FFmpeg handler tests'
+    t.warning = false
     t.test_files = Dir['spec/*_spec.rb', 'spec/*_test.rb'].reject do |f|
       f.include?('ffmpeg')
     end
@@ -28,6 +32,7 @@ namespace :test do
   
   TestTask.new(:nomagick) do |t|
     t.description = 'Skip ImageMagick handler tests'
+    t.warning = false
     t.test_files = Dir['spec/*_spec.rb', 'spec/*_test.rb'].reject do |f|
       f.include?('magick')
     end
