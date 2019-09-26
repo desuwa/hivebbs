@@ -1,0 +1,23 @@
+{
+  "laxbreak": true,
+  "boss": true,
+  "expr": true,
+  "sub": true,
+  "browser": true,
+  "devel": true,
+  "strict": "implied",
+  "multistr": true,
+  "scripturl": true,
+  "unused": "vars",
+  "undef": true,
+  "-W079": true,
+  "esversion": 6,
+  
+  "globals": {
+    "$": true,
+    "Tegaki": true,
+    "Tip": true,
+    "ClickHandler": true,
+    "Hive": true
+  }
+}

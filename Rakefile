@@ -85,14 +85,14 @@ namespace :build do
       puts "Building #{basename}.js"
       
       u = Uglifier.new(
-        screw_ie8: true,
-        source_filename: "#{basename}.js",
-        output_filename: "#{basename}.min.js"
+        :harmony => true,
+        :source_map => {
+          :filename => "#{basename}.js",
+          :map_url => "#{basename}.min.js.map",
+        },
       )
       
       js, sm = u.compile_with_map(File.read("#{root}/#{basename}.js"))
-      
-      js << "\n//# sourceMappingURL=#{basename}.min.js.map"
       
       Zlib::GzipWriter.open("#{root}/#{basename}.min.js.gz") do |gz|
         gz.write(js)
@@ -133,20 +133,7 @@ end
 
 desc 'Run JShint'
 task :jshint do |t|
-  require 'jshintrb'
-  
-  opts = {
-    laxbreak: true,
-    boss: true,
-    expr: true,
-    sub: true,
-    browser: true,
-    devel: true,
-    globalstrict: true,
-    '-W079' => true # no-native-reassign
-  }
-  
-  globals = ['$', 'Tegaki', 'Tip', 'ClickHandler', 'Hive']
+  require 'open3'
   
   root = 'public/js'
   
@@ -155,8 +142,14 @@ task :jshint do |t|
     
     next unless File.exist?(f)
     
-    puts "--> #{root}/#{basename}.js"
-    puts Jshintrb.report(File.read(f), opts, globals)
+    output, outerr, status = Open3.capture3('jshint', f)
+    
+    if outerr != ''
+      puts outerr
+      abort
+    else
+      puts output
+    end
   end
 end
 
